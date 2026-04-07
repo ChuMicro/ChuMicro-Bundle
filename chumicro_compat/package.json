@@ -1,0 +1,13 @@
+{
+  "urls": [
+    [
+      "chumicro_compat/__init__.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_compat/__init__.mpy"
+    ],
+    [
+      "chumicro_compat/functools.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_compat/functools.mpy"
+    ]
+  ],
+  "version": "0.1.13"
+}
