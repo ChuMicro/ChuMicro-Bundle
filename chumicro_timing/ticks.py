@@ -23,9 +23,9 @@ try:
     from micropython import const
 except ImportError:  # CPython — const() is a no-op on standard Python.
 
-    def const(x):
+    def const(value: int) -> int:
         """Identity fallback so ``const()`` works on CPython."""
-        return x
+        return value
 
 
 _TICKS_PERIOD = const(1 << 29)
@@ -33,7 +33,7 @@ _TICKS_MAX = const(_TICKS_PERIOD - 1)
 _TICKS_HALFPERIOD = const(_TICKS_PERIOD // 2)
 
 
-def _try_import_supervisor():
+def _try_import_supervisor() -> object | None:
     """Return the CircuitPython ``supervisor`` module, or ``None``."""
     try:
         import supervisor
@@ -43,7 +43,7 @@ def _try_import_supervisor():
         return None
 
 
-def _resolve_ticks_ms():
+def _resolve_ticks_ms() -> object:
     """Choose the best raw millisecond source available on this runtime.
 
     Called once at import time.  The returned callable is stored in
@@ -76,7 +76,7 @@ def _resolve_ticks_ms():
 _raw_ticks_ms = _resolve_ticks_ms()
 
 
-def ticks_ms():
+def ticks_ms() -> int:
     """Return a monotonic millisecond count in [0 .. 2**29 - 1].
 
     Values wrap every ~6.2 days.  Use ``ticks_diff`` and ``ticks_add``
@@ -86,21 +86,36 @@ def ticks_ms():
     return _raw_ticks_ms() & _TICKS_MAX
 
 
-def ticks_add(ticks, delta):
+def ticks_add(ticks: int, delta: int) -> int:
     """Add *delta* milliseconds to a tick value, wrapping at 2**29.
 
-    Raises ``OverflowError`` if *delta* is outside (-2**28 .. 2**28).
+    Args:
+        ticks: Base tick value.
+        delta: Milliseconds to add.
+
+    Returns:
+        Wrapped tick value.
+
+    Raises:
+        OverflowError: If *delta* is outside (-2**28 .. 2**28).
     """
     if -_TICKS_HALFPERIOD < delta < _TICKS_HALFPERIOD:
         return (ticks + delta) % _TICKS_PERIOD
     raise OverflowError("ticks interval overflow")
 
 
-def ticks_diff(end, start):
+def ticks_diff(end: int, start: int) -> int:
     """Signed difference *end* minus *start* with wraparound handling.
 
     Correct as long as *end* and *start* are no more than
     2**28 ms (~3.1 days) apart.
+
+    Args:
+        end: Later tick value.
+        start: Earlier tick value.
+
+    Returns:
+        Signed difference in milliseconds.
     """
     diff = (end - start) & _TICKS_MAX
     return ((diff + _TICKS_HALFPERIOD) & _TICKS_MAX) - _TICKS_HALFPERIOD

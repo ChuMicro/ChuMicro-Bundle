@@ -13,7 +13,9 @@ class Heartbeat:
     and ``ticks_diff`` methods to override (e.g. for tests).
     """
 
-    def __init__(self, period_ms, ticks=None):
+    __slots__ = ("_period_ms", "_ticks_diff", "_last_beat_ms")
+
+    def __init__(self, period_ms: int, ticks: object | None = None) -> None:
         """Create a heartbeat that becomes due once every *period_ms* milliseconds.
 
         Args:
@@ -37,20 +39,38 @@ class Heartbeat:
             self._last_beat_ms = ticks_ms()
 
     @property
-    def period_ms(self):
+    def period_ms(self) -> int:
         """Return the configured heartbeat period in milliseconds."""
         return self._period_ms
 
-    def reset(self, now_ms):
-        """Reset the heartbeat schedule to start counting from *now_ms*."""
+    def reset(self, now_ms: int) -> None:
+        """Reset the heartbeat schedule to start counting from *now_ms*.
+
+        Args:
+            now_ms: Current tick value.
+        """
         self._last_beat_ms = now_ms
 
-    def is_due(self, now_ms):
-        """Return whether the heartbeat period has elapsed since the last beat."""
+    def is_due(self, now_ms: int) -> bool:
+        """Return whether the heartbeat period has elapsed since the last beat.
+
+        Args:
+            now_ms: Current tick value.
+
+        Returns:
+            ``True`` if the period has elapsed.
+        """
         return self._ticks_diff(now_ms, self._last_beat_ms) >= self._period_ms
 
-    def poll(self, now_ms):
-        """Return ``True`` once per elapsed period and advance the heartbeat state."""
+    def poll(self, now_ms: int) -> bool:
+        """Return ``True`` once per elapsed period and advance the heartbeat state.
+
+        Args:
+            now_ms: Current tick value.
+
+        Returns:
+            ``True`` if the period elapsed and the heartbeat advanced.
+        """
         if not self.is_due(now_ms):
             return False
 

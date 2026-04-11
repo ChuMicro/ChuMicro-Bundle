@@ -1,21 +1,21 @@
 {
   "urls": [
     [
-      "chumicro_timing/__init__.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/__init__.mpy"
+      "chumicro_timing/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/__init__.py"
     ],
     [
-      "chumicro_timing/heartbeat.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/heartbeat.mpy"
+      "chumicro_timing/heartbeat.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/heartbeat.py"
     ],
     [
-      "chumicro_timing/testing.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/testing.mpy"
+      "chumicro_timing/testing.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/testing.py"
     ],
     [
-      "chumicro_timing/ticks.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/ticks.mpy"
+      "chumicro_timing/ticks.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/ticks.py"
     ]
   ],
-  "version": "0.1.14"
+  "version": "0.1.21"
 }
