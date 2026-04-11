@@ -1,0 +1,13 @@
+{
+  "urls": [
+    [
+      "chumicro_msgpack/__init__.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_msgpack/__init__.mpy"
+    ],
+    [
+      "chumicro_msgpack/_pure.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_msgpack/_pure.mpy"
+    ]
+  ],
+  "version": "0.1.21"
+}
