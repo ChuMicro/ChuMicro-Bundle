@@ -45,6 +45,11 @@ import mip
 mip.install("github:ChuMicro/ChuMicro-Bundle/chumicro_timing")
 ```
 
+> **Want pre-compiled `.mpy` bytecode?** Add `mpy6/` before the package name for faster startup and lower RAM usage on boards with mpy format v6 (MicroPython 1.24+, CircuitPython 10.x):
+> ```
+> mpremote mip install github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing
+> ```
+
 **CPython (pip):**
 
 On your laptop, install from PyPI — no bundle needed:
