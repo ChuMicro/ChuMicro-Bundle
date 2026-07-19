@@ -1,57 +1,30 @@
 # chumicro-compat
 
-<img src="https://raw.githubusercontent.com/ChuMicro/ChuMicro/main/support/docs/chumicro_tip.png" align="left" width="64" style="margin-right: 16px; margin-bottom: 8px;">
+<img src="https://raw.githubusercontent.com/ChuMicro/ChuMicro/main/support/docs/chumicro_tip.png"
+align="left" width="64" style="margin-right: 16px; margin-bottom: 8px;">
 
-**Standard library features that CircuitPython and MicroPython are missing.**
+**Stdlib polyfills for the bits CircuitPython and MicroPython skipped.**
 
-Import from `chumicro_compat` instead of the stdlib and your code works everywhere. On CPython it re-exports the real C implementations (zero overhead); on microcontrollers it provides lightweight pure-Python versions.
+Import from `chumicro_compat` instead of the stdlib and your code works everywhere. CPython gets the real C implementation (zero overhead); CircuitPython and MicroPython get a lightweight pure-Python version of the same public API.
 
 <br clear="left">
 
-> Part of the [ChuMicro](https://github.com/ChuMicro/ChuMicro) family — small, focused Python libraries for microcontrollers and laptops. [See all libraries.](https://github.com/ChuMicro/ChuMicro#whats-in-the-box)
+> Part of the [ChuMicro](https://github.com/ChuMicro/ChuMicro) family — small, focused Python libraries for microcontrollers and laptops. [Browse all libraries.](https://github.com/ChuMicro/ChuMicro/tree/main/libraries)
 
-## Installation
-
-### CircuitPython ([circup](https://github.com/adafruit/circup))
-
-circup is CircuitPython's package manager — it uses bundles to find third-party packages. Register the ChuMicro bundle once, then install by name:
+## Install
 
 ```bash
-circup bundle-add ChuMicro/ChuMicro-Bundle
-circup install chumicro-compat
-```
+# CircuitPython (after `circup bundle-add ChuMicro/ChuMicro-Bundle`)
+circup install chumicro_compat
 
-### MicroPython ([mip](https://docs.micropython.org/en/latest/reference/packages.html))
-
-```bash
+# MicroPython
 mpremote mip install github:ChuMicro/ChuMicro-Bundle/chumicro_compat
-```
 
-### CPython (pip)
-
-```bash
+# CPython
 pip install chumicro-compat
 ```
 
-<details>
-<summary>Experimental (pre-release) versions and channel switching</summary>
-
-Pre-release builds are published automatically when a library version is bumped.  Do not register both bundles simultaneously — circup may pick either version for a given package.
-
-```bash
-# CircuitPython — switch to experimental
-circup bundle-remove ChuMicro/ChuMicro-Bundle              # skip if never added
-circup bundle-add ChuMicro/ChuMicro-Bundle-Experimental
-circup install chumicro-compat
-
-# MicroPython
-mpremote mip install github:ChuMicro/ChuMicro-Bundle-Experimental/chumicro_compat
-
-# CPython
-pip install chumicro-compat-experimental
-```
-
-</details>
+For bundle setup, pre-compiled `.mpy` bundles, the experimental channel, and details on PyPI naming, see the [chumicro INSTALL guide](https://github.com/ChuMicro/ChuMicro/blob/main/INSTALL.md).
 
 ## Quick example
 
@@ -89,6 +62,9 @@ set_status_led(100)  # pin 13 → 100%
 
 The public API (`.func`, `.args`, `.keywords`, `__call__`, `__repr__`) is identical across all runtimes.
 
+## Where this fits
+
+Leaf — no upstream ChuMicro deps.  Used directly by any library or app that wants stdlib features (`functools.partial`, …) missing from CircuitPython / MicroPython.
 
 ## Examples
 
@@ -97,6 +73,18 @@ The public API (`.func`, `.args`, `.keywords`, `__call__`, `__repr__`) is identi
 | `partial_basic.py` | Freeze one argument to a function |
 | `partial_keyword_override.py` | Freeze keyword args, override at call time |
 | `partial_callback.py` | Wire a callback with frozen context (embedded pattern) |
+
+## Contributing
+
+Working on `chumicro-compat` itself?  Clone the [mono-repo](https://github.com/ChuMicro/ChuMicro) if you haven't already — the rest of the workflow assumes you're inside that workspace.
+
+```bash
+pip install -e .[test]
+pytest tests/                  # host-side tests
+pytest functional_tests/       # on-device tests (needs a board registered in devices.yml)
+```
+
+Register a board before running functional tests: `chumicro-workspace add-device <id> --address <port>`.
 
 ## Docs
 
@@ -108,3 +96,7 @@ The public API (`.func`, `.args`, `.keywords`, `__call__`, `__repr__`) is identi
 - **Bundle:** [ChuMicro-Bundle](https://github.com/ChuMicro/ChuMicro-Bundle/tree/main/chumicro_compat) (CircuitPython & MicroPython)
 - **Experimental bundle:** [ChuMicro-Bundle-Experimental](https://github.com/ChuMicro/ChuMicro-Bundle-Experimental/tree/main/chumicro_compat)
 - **Source:** [libraries/compat](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/compat)
+
+## License
+
+[MIT](https://github.com/ChuMicro/ChuMicro/blob/main/LICENSE)

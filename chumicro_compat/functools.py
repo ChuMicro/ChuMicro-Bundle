@@ -1,56 +1,31 @@
-"""Cross-runtime ``functools.partial`` polyfill.
-
-On CPython, re-exports the C-implemented ``functools.partial`` directly.
-On MicroPython and CircuitPython (where ``functools.partial`` is absent),
-provides a pure-Python implementation that matches CPython's public API.
-
-Example:
-    ```python
-    from chumicro_compat.functools import partial
-
-    greet = partial(print, "hello")
-    greet("world")  # prints: hello world
-    ```
-"""
+"""Cross-runtime ``functools.partial`` polyfill."""
 
 
 class _PurePythonPartial:
-    """Pure-Python ``functools.partial`` for runtimes that lack it.
-
-    Freezes positional and keyword arguments to a callable.  The
-    public attributes mirror CPython's ``functools.partial``:
-
-    Attributes:
-        func: The wrapped callable.
-        args: Frozen positional arguments (tuple).
-        keywords: Frozen keyword arguments (dict).
-    """
-
-    __slots__ = ("func", "args", "keywords")
-
     def __init__(self, func: object, *args: object, **keywords: object) -> None:
-        """Create a partial object.
-
-        Args:
-            func: Callable to wrap.  Raises ``TypeError`` if not
-                callable.
-            *args: Positional arguments to freeze.
-            **keywords: Keyword arguments to freeze.
-        """
         if not callable(func):
             raise TypeError(f"{func!r} is not callable")
+        if isinstance(func, _PurePythonPartial):
+            # Flatten nested partials like CPython so introspection matches.
+            merged_keywords = func.keywords.copy()
+            merged_keywords.update(keywords)
+            args = func.args + args
+            keywords = merged_keywords
+            func = func.func
         self.func = func
         self.args = args
         self.keywords = keywords
 
     def __call__(self, *args: object, **keywords: object) -> object:
-        """Call the wrapped function with frozen + extra arguments."""
-        combined = self.keywords.copy()
-        combined.update(keywords)
+        if keywords:
+            combined = self.keywords.copy()
+            combined.update(keywords)
+        else:
+            # self.keywords is never mutated, so skip the per-call copy.
+            combined = self.keywords
         return self.func(*self.args, *args, **combined)
 
     def __repr__(self) -> str:
-        """Return a developer-friendly representation."""
         parts = [repr(self.func)]
         parts.extend(repr(arg) for arg in self.args)
         parts.extend(f"{key}={value!r}" for key, value in self.keywords.items())
@@ -58,6 +33,16 @@ class _PurePythonPartial:
 
 
 try:
-    from functools import partial  # noqa: F401 — CPython; re-exported.
-except ImportError:  # pragma: no cover — MicroPython/CircuitPython fallback
+    from functools import partial
+
+    # Some MicroPython builds ship a degraded partial without .func/.args/.keywords.
+    _probe = partial(int, 0)
+    if not (
+        hasattr(_probe, "func")
+        and hasattr(_probe, "args")
+        and hasattr(_probe, "keywords")
+    ):  # pragma: no cover - only micropython-lib's degraded partial hits this
+        partial = _PurePythonPartial
+    del _probe
+except ImportError:  # pragma: no cover - MicroPython/CircuitPython fallback
     partial = _PurePythonPartial
