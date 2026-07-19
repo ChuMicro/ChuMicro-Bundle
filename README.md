@@ -65,6 +65,7 @@ pip install chumicro-timing
 | [**chumicro-compat**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/compat) | 0.3.1 | Cross-runtime compatibility polyfills for CircuitPython, MicroPython, and CPython — functools.partial and more. |
 | [**chumicro-config**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/config) | 0.7.3 | Standardized runtime-config helpers for ChuMicro libraries — section loader + on-device runtime-config reader. |
 | [**chumicro-http_server**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/http_server) | 0.19.0 | Non-blocking HTTP/1.1 server for CircuitPython, MicroPython, and CPython. |
+| [**chumicro-kvstore**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/kvstore) | 0.3.1 | Tiny mutable key-value store for persisted runtime state — counters, timestamps, tokens — across CircuitPython, MicroPython, and CPython. |
 | [**chumicro-msgpack**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/msgpack) | 0.2.2 | Compact MessagePack serialization for CircuitPython, MicroPython, and CPython — delegates to the native C module when available. |
 | [**chumicro-runner**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/runner) | 0.19.0 | Tick-based task runner for CircuitPython, MicroPython, and CPython — non-blocking check/handle scheduling without async. |
 | [**chumicro-sockets**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/sockets) | 0.20.0 | Cross-runtime TCP + TLS sockets for CircuitPython, MicroPython, and CPython. |
