@@ -1,0 +1,23 @@
+{
+  "urls": [
+    [
+      "chumicro_config/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_config/__init__.py"
+    ],
+    [
+      "chumicro_config/runtime.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_config/runtime.py"
+    ],
+    [
+      "chumicro_config/section.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_config/section.py"
+    ]
+  ],
+  "version": "0.7.3",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_msgpack",
+      "20260719.2"
+    ]
+  ]
+}
