@@ -1,0 +1,39 @@
+{
+  "urls": [
+    [
+      "chumicro_wifi/__init__.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_wifi/__init__.mpy"
+    ],
+    [
+      "chumicro_wifi/_adapters/__init__.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_wifi/_adapters/__init__.mpy"
+    ],
+    [
+      "chumicro_wifi/_adapters/base.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_wifi/_adapters/base.mpy"
+    ],
+    [
+      "chumicro_wifi/_adapters/mp.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_wifi/_adapters/mp.mpy"
+    ],
+    [
+      "chumicro_wifi/config.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_wifi/config.mpy"
+    ],
+    [
+      "chumicro_wifi/service.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_wifi/service.mpy"
+    ]
+  ],
+  "version": "0.8.1",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_config",
+      "20260719.12"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
+      "20260719.12"
+    ]
+  ]
+}

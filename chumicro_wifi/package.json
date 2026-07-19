@@ -1,0 +1,43 @@
+{
+  "urls": [
+    [
+      "chumicro_wifi/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_wifi/__init__.py"
+    ],
+    [
+      "chumicro_wifi/_adapters/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_wifi/_adapters/__init__.py"
+    ],
+    [
+      "chumicro_wifi/_adapters/base.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_wifi/_adapters/base.py"
+    ],
+    [
+      "chumicro_wifi/_adapters/cp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_wifi/_adapters/cp.py"
+    ],
+    [
+      "chumicro_wifi/_adapters/mp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_wifi/_adapters/mp.py"
+    ],
+    [
+      "chumicro_wifi/config.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_wifi/config.py"
+    ],
+    [
+      "chumicro_wifi/service.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_wifi/service.py"
+    ]
+  ],
+  "version": "0.8.1",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_config",
+      "20260719.12"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
+      "20260719.12"
+    ]
+  ]
+}
