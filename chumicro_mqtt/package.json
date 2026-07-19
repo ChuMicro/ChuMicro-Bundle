@@ -1,0 +1,31 @@
+{
+  "urls": [
+    [
+      "chumicro_mqtt/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_mqtt/__init__.py"
+    ],
+    [
+      "chumicro_mqtt/_wire.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_mqtt/_wire.py"
+    ],
+    [
+      "chumicro_mqtt/client.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_mqtt/client.py"
+    ]
+  ],
+  "version": "0.28.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_config",
+      "20260719.10"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
+      "20260719.10"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
+      "20260719.10"
+    ]
+  ]
+}
