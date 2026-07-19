@@ -1,0 +1,27 @@
+{
+  "urls": [
+    [
+      "chumicro_runner/__init__.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_runner/__init__.mpy"
+    ],
+    [
+      "chumicro_runner/_generator.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_runner/_generator.mpy"
+    ],
+    [
+      "chumicro_runner/core.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_runner/core.mpy"
+    ],
+    [
+      "chumicro_runner/generators.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_runner/generators.mpy"
+    ]
+  ],
+  "version": "0.19.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
+      "20260719.4"
+    ]
+  ]
+}

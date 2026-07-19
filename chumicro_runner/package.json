@@ -1,23 +1,27 @@
 {
   "urls": [
     [
-      "chumicro_runner/__init__.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_runner/__init__.mpy"
+      "chumicro_runner/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_runner/__init__.py"
     ],
     [
-      "chumicro_runner/core.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_runner/core.mpy"
+      "chumicro_runner/_generator.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_runner/_generator.py"
     ],
     [
-      "chumicro_runner/testing.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_runner/testing.mpy"
+      "chumicro_runner/core.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_runner/core.py"
+    ],
+    [
+      "chumicro_runner/generators.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_runner/generators.py"
     ]
   ],
-  "version": "0.1.13",
+  "version": "0.19.0",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
-      "latest"
+      "20260719.4"
     ]
   ]
 }
