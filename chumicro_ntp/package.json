@@ -1,0 +1,23 @@
+{
+  "urls": [
+    [
+      "chumicro_ntp/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_ntp/__init__.py"
+    ],
+    [
+      "chumicro_ntp/core.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_ntp/core.py"
+    ]
+  ],
+  "version": "0.13.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
+      "20260719.8"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
+      "20260719.8"
+    ]
+  ]
+}
