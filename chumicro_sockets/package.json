@@ -1,0 +1,45 @@
+{
+  "urls": [
+    [
+      "chumicro_sockets/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/__init__.py"
+    ],
+    [
+      "chumicro_sockets/_adapters/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/_adapters/__init__.py"
+    ],
+    [
+      "chumicro_sockets/_adapters/cp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/_adapters/cp.py"
+    ],
+    [
+      "chumicro_sockets/_adapters/mp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/_adapters/mp.py"
+    ],
+    [
+      "chumicro_sockets/_ca_bundle.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/_ca_bundle.py"
+    ],
+    [
+      "chumicro_sockets/_connector.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/_connector.py"
+    ],
+    [
+      "chumicro_sockets/generators.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/generators.py"
+    ],
+    [
+      "chumicro_sockets/sockets_factory.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/sockets_factory.py"
+    ],
+    [
+      "chumicro_sockets/waits.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/waits.py"
+    ],
+    [
+      "chumicro_sockets/_ca_bundle.der",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets/_ca_bundle.der"
+    ]
+  ],
+  "version": "0.20.0"
+}
