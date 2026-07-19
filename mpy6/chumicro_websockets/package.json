@@ -1,0 +1,35 @@
+{
+  "urls": [
+    [
+      "chumicro_websockets/__init__.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_websockets/__init__.mpy"
+    ],
+    [
+      "chumicro_websockets/_session.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_websockets/_session.mpy"
+    ],
+    [
+      "chumicro_websockets/_wire.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_websockets/_wire.mpy"
+    ],
+    [
+      "chumicro_websockets/client.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_websockets/client.mpy"
+    ],
+    [
+      "chumicro_websockets/server.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_websockets/server.mpy"
+    ]
+  ],
+  "version": "0.25.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_sockets",
+      "20260719.11"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
+      "20260719.11"
+    ]
+  ]
+}

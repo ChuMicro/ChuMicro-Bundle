@@ -1,0 +1,35 @@
+{
+  "urls": [
+    [
+      "chumicro_websockets/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_websockets/__init__.py"
+    ],
+    [
+      "chumicro_websockets/_session.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_websockets/_session.py"
+    ],
+    [
+      "chumicro_websockets/_wire.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_websockets/_wire.py"
+    ],
+    [
+      "chumicro_websockets/client.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_websockets/client.py"
+    ],
+    [
+      "chumicro_websockets/server.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_websockets/server.py"
+    ]
+  ],
+  "version": "0.25.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
+      "20260719.11"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
+      "20260719.11"
+    ]
+  ]
+}
