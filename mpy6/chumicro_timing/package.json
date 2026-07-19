@@ -5,17 +5,17 @@
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing/__init__.mpy"
     ],
     [
-      "chumicro_timing/heartbeat.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing/heartbeat.mpy"
-    ],
-    [
-      "chumicro_timing/testing.mpy",
-      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing/testing.mpy"
+      "chumicro_timing/deadline.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing/deadline.mpy"
     ],
     [
       "chumicro_timing/ticks.mpy",
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing/ticks.mpy"
+    ],
+    [
+      "chumicro_timing/waits.mpy",
+      "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing/waits.mpy"
     ]
   ],
-  "version": "0.1.25"
+  "version": "0.8.1"
 }

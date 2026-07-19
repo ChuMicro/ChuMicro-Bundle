@@ -1,75 +1,41 @@
 # chumicro-timing
 
-<img src="https://raw.githubusercontent.com/ChuMicro/ChuMicro/main/support/docs/chumicro_tip.png" align="left" width="64" style="margin-right: 16px; margin-bottom: 8px;">
+<img src="https://raw.githubusercontent.com/ChuMicro/ChuMicro/main/support/docs/chumicro_tip.png"
+align="left" width="64" style="margin-right: 16px; margin-bottom: 8px;">
 
-**Timers that don't freeze your code — your loop keeps running while waiting.**
+**Timers that don't block. Your loop keeps ticking.**
 
-Capture `ticks_ms()` once per loop, hand it to a `Heartbeat`, and you've got clean periodic timing — no `time.sleep()`, no wraparound bugs. Works on CircuitPython, MicroPython, and CPython.
+Capture `ticks_ms()` once per loop pass, hand it to a `Rate` or a `Deadline`, and you've got clean drift-free timing on CircuitPython, MicroPython, or CPython. Tick-source detection is automatic, wraparound is handled, and there are no dependencies on anything else in ChuMicro — it's where every other library starts.
 
 <br clear="left">
 
-> Part of the [ChuMicro](https://github.com/ChuMicro/ChuMicro) family — small, focused Python libraries for microcontrollers and laptops. [See all libraries.](https://github.com/ChuMicro/ChuMicro#whats-in-the-box)
+> Part of the [ChuMicro](https://github.com/ChuMicro/ChuMicro) family — small, focused Python libraries for microcontrollers and laptops. [Browse all libraries.](https://github.com/ChuMicro/ChuMicro/tree/main/libraries)
 
-## Installation
-
-### CircuitPython ([circup](https://github.com/adafruit/circup))
-
-circup is CircuitPython's package manager — it uses [bundles](https://learn.adafruit.com/keep-your-circuitpython-libraries-on-devices-up-to-date-with-circup/bundle-commands) to find third-party packages. Register the ChuMicro bundle once, then install by name:
+## Install
 
 ```bash
-circup bundle-add ChuMicro/ChuMicro-Bundle
-circup install chumicro-timing
-```
+# CircuitPython (after `circup bundle-add ChuMicro/ChuMicro-Bundle`)
+circup install chumicro_timing
 
-### MicroPython ([mip](https://docs.micropython.org/en/latest/reference/packages.html))
-
-```bash
+# MicroPython
 mpremote mip install github:ChuMicro/ChuMicro-Bundle/chumicro_timing
-```
 
-> **Want pre-compiled `.mpy` bytecode?** Add `mpy6/` before the package name for faster startup and lower RAM usage on boards with mpy format v6 (MicroPython 1.24+):
-> ```
-> mpremote mip install github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing
-> ```
-
-### CPython (pip)
-
-```bash
+# CPython
 pip install chumicro-timing
 ```
 
-*Just getting started? Skip this — the install commands above are all you need.*
-
-<details>
-<summary>Experimental (pre-release) versions and channel switching</summary>
-
-Pre-release builds are published automatically when a library version is bumped.  Do not register both bundles simultaneously — circup may pick either version for a given package.
-
-```bash
-# CircuitPython — switch to experimental
-circup bundle-remove ChuMicro/ChuMicro-Bundle              # skip if never added
-circup bundle-add ChuMicro/ChuMicro-Bundle-Experimental
-circup install chumicro-timing
-
-# MicroPython
-mpremote mip install github:ChuMicro/ChuMicro-Bundle-Experimental/chumicro_timing
-
-# CPython
-pip install chumicro-timing-experimental
-```
-
-</details>
+For bundle setup, pre-compiled `.mpy` bundles, the experimental channel, and details on PyPI naming, see the [chumicro INSTALL guide](https://github.com/ChuMicro/ChuMicro/blob/main/INSTALL.md).
 
 ## Quick example
 
 ```python
-from chumicro_timing import Heartbeat, ticks_ms
+from chumicro_timing import Rate, ticks_ms
 
-heartbeat = Heartbeat(period_ms=1000)
+rate = Rate(1000, ticks_ms())
 
 while True:
     now = ticks_ms()
-    if heartbeat.poll(now):
+    if rate.due(now):
         print("one second elapsed")
     # ... do other work ...
 ```
@@ -84,15 +50,21 @@ while True:
 | `ticks_diff(end, start)` | Time elapsed between two tick values (handles wraparound correctly) |
 | `ticks_add(ticks, delta)` | Add milliseconds to a tick value (handles wraparound correctly) |
 
-### Heartbeat
+### Value objects
 
 | Symbol | Description |
 |---|---|
-| `Heartbeat(period_ms, ticks=None)` | Periodic timer that fires once per elapsed period |
-| `Heartbeat.poll(now_ms)` | Returns `True` once per period and advances the timer |
-| `Heartbeat.is_due(now_ms)` | Check whether the period has elapsed (without advancing) |
-| `Heartbeat.reset(now_ms)` | Restart the timer from the given timestamp |
-| `Heartbeat.period_ms` | The configured period (read-only property) |
+| `Deadline(period_ms, now_ms)` | A single armed timeout — `expired(now)` / `remaining(now)` / `reset(now)` |
+| `Rate(period_ms, now_ms)` | Drift-free periodic cadence; `due(now)` fires at most once per period |
+
+### Wait vocabulary (`chumicro_timing.waits`)
+
+Opt-in completion-wait vocabulary for generator flows — import explicitly.
+
+| Symbol | Description |
+|---|---|
+| `Signal()` | A completion flag — `set(value)` / `clear()` / `ready(now)` |
+| `wait_for(signal, deadline_ms=None)` | Generator suspension helper: `yield from wait_for(signal)` |
 
 ### Testing
 
@@ -101,22 +73,22 @@ while True:
 | `FakeTicks(start_ms=0)` | Deterministic tick source for host-side tests |
 | `FakeTicks.advance(amount_ms)` | Move the fake clock forward |
 
-## Related libraries
+## Where this fits
 
-For structured task scheduling with multiple services, see [runner](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/runner). Runner is built on timing — it captures `ticks_ms()` once per tick and dispatches services on a shared timestamp.
+Leaf — no upstream ChuMicro deps.  Everything in ChuMicro that owns time depends on it: [`runner`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/runner), [`sockets`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/sockets), [`ntp`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/ntp), [`requests`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/requests), [`http_server`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/http_server), [`mqtt`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/mqtt), [`websockets`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/websockets).
 
 ## Platform support
 
-You don't need to pick a tick source — the library detects your runtime and uses the best one available:
+You don't need to pick a tick source — the library picks the best one available on your runtime. Behavior is identical regardless of which source is used.
 
-| Priority | Source | Runtime |
-|---|---|---|
-| 1 | `supervisor.ticks_ms` | CircuitPython 7+ |
-| 2 | `time.ticks_ms` | MicroPython, some CircuitPython builds |
-| 3 | `time.monotonic_ns` | CPython, some CircuitPython boards |
-| 4 | `time.monotonic` | Final fallback (float seconds → int ms) |
+| Source | Runtime |
+|---|---|
+| `supervisor.ticks_ms` | CircuitPython 7+ |
+| `time.ticks_ms` | MicroPython, some CircuitPython builds |
+| `time.monotonic_ns` | CPython, some CircuitPython boards |
+| `time.monotonic` | Final fallback (float seconds → int ms) |
 
-Behavior is identical regardless of which source is used — you don't need to think about this, it just works.
+The library tries them top-to-bottom and uses the first one your runtime supports.
 
 <details>
 <summary>Technical detail: tick wraparound</summary>
@@ -130,33 +102,44 @@ All sources are masked to a 2²⁹ ms period (~6.2 days). `ticks_diff` and `tick
 The `chumicro_timing.testing` module provides `FakeTicks` for deterministic host-side tests — no wall-clock waits:
 
 ```python
-from chumicro_timing import Heartbeat
+from chumicro_timing import Rate
 from chumicro_timing.testing import FakeTicks
 
 fake = FakeTicks()
-heartbeat = Heartbeat(period_ms=100, ticks=fake)
+rate = Rate(100, fake.ticks_ms())
 
-now = fake.ticks_ms()
-assert heartbeat.poll(now) is False
+assert rate.due(fake.ticks_ms()) is False
 
 fake.advance(100)
-now = fake.ticks_ms()
-assert heartbeat.poll(now) is True
+assert rate.due(fake.ticks_ms()) is True
 ```
 
 ## Examples
 
 | Example | What it shows |
 |---|---|
-| `heartbeat_blink.py` | Basic periodic timer loop |
-| `multiple_heartbeats.py` | Multiple heartbeats at different rates |
-| `timeout_check.py` | One-shot timeout using `is_due` |
+| `heartbeat_blink.py` | Basic periodic `Rate` loop |
+| `multiple_heartbeats.py` | Multiple `Rate` timers at different rates |
+| `timeout_check.py` | One-shot deadline check using `ticks_diff` |
 | `debounce.py` | Simulated button debounce |
-| `periodic_tick.py` | Manual periodic loop (what Heartbeat does under the hood) |
+| `periodic_tick.py` | Manual periodic loop (the same logic `Rate` wraps internally) |
+| `phase_locked_tick.py` | Drift-free deadline carrier — same period across late loops |
 | `circuitpython_blink.py` | LED blink on CircuitPython hardware |
 | `circuitpython_debounce.py` | GPIO button debounce on CircuitPython |
 | `micropython_blink.py` | LED blink on MicroPython hardware |
 | `micropython_debounce.py` | GPIO button debounce on MicroPython |
+
+## Contributing
+
+Working on `chumicro-timing` itself?  Clone the [mono-repo](https://github.com/ChuMicro/ChuMicro) if you haven't already — the rest of the workflow assumes you're inside that workspace.
+
+```bash
+pip install -e .[test]
+pytest tests/                  # host-side tests
+pytest functional_tests/       # on-device tests (needs a board registered in devices.yml)
+```
+
+Register a board before running functional tests: `chumicro-workspace add-device <id> --address <port>`.
 
 ## Docs
 
@@ -168,3 +151,7 @@ assert heartbeat.poll(now) is True
 - **Bundle:** [ChuMicro-Bundle](https://github.com/ChuMicro/ChuMicro-Bundle/tree/main/chumicro_timing) (CircuitPython & MicroPython)
 - **Experimental bundle:** [ChuMicro-Bundle-Experimental](https://github.com/ChuMicro/ChuMicro-Bundle-Experimental/tree/main/chumicro_timing)
 - **Source:** [libraries/timing](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/timing)
+
+## License
+
+[MIT](https://github.com/ChuMicro/ChuMicro/blob/main/LICENSE)

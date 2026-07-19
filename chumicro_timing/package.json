@@ -5,17 +5,17 @@
       "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/__init__.py"
     ],
     [
-      "chumicro_timing/heartbeat.py",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/heartbeat.py"
-    ],
-    [
-      "chumicro_timing/testing.py",
-      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/testing.py"
+      "chumicro_timing/deadline.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/deadline.py"
     ],
     [
       "chumicro_timing/ticks.py",
       "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/ticks.py"
+    ],
+    [
+      "chumicro_timing/waits.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing/waits.py"
     ]
   ],
-  "version": "0.1.25"
+  "version": "0.8.1"
 }
