@@ -68,6 +68,7 @@ pip install chumicro-timing
 | [**chumicro-kvstore**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/kvstore) | 0.3.1 | Tiny mutable key-value store for persisted runtime state — counters, timestamps, tokens — across CircuitPython, MicroPython, and CPython. |
 | [**chumicro-msgpack**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/msgpack) | 0.2.2 | Compact MessagePack serialization for CircuitPython, MicroPython, and CPython — delegates to the native C module when available. |
 | [**chumicro-ntp**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/ntp) | 0.13.0 | Runner-shaped SNTP client over an injected UDP socket — pure-Python, cross-runtime. |
+| [**chumicro-requests**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/requests) | 0.19.0 | Non-blocking HTTP/1.1 client for CircuitPython, MicroPython, and CPython. |
 | [**chumicro-runner**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/runner) | 0.19.0 | Tick-based task runner for CircuitPython, MicroPython, and CPython — non-blocking check/handle scheduling without async. |
 | [**chumicro-sockets**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/sockets) | 0.20.0 | Cross-runtime TCP + TLS sockets for CircuitPython, MicroPython, and CPython. |
 | [**chumicro-timing**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/timing) | 0.8.1 | Wraparound-safe millisecond tick helpers plus wait value objects (deadlines, rates, signals) for CircuitPython, MicroPython, and CPython. |

@@ -1,0 +1,31 @@
+{
+  "urls": [
+    [
+      "chumicro_requests/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_requests/__init__.py"
+    ],
+    [
+      "chumicro_requests/_wire.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_requests/_wire.py"
+    ],
+    [
+      "chumicro_requests/client.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_requests/client.py"
+    ],
+    [
+      "chumicro_requests/generators.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_requests/generators.py"
+    ]
+  ],
+  "version": "0.19.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
+      "20260719.9"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
+      "20260719.9"
+    ]
+  ]
+}
