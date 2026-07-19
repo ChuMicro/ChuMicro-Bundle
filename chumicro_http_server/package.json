@@ -1,0 +1,35 @@
+{
+  "urls": [
+    [
+      "chumicro_http_server/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_http_server/__init__.py"
+    ],
+    [
+      "chumicro_http_server/_wire.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_http_server/_wire.py"
+    ],
+    [
+      "chumicro_http_server/server.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_http_server/server.py"
+    ],
+    [
+      "chumicro_http_server/streaming.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_http_server/streaming.py"
+    ]
+  ],
+  "version": "0.19.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_config",
+      "20260719.6"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
+      "20260719.6"
+    ],
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
+      "20260719.6"
+    ]
+  ]
+}
