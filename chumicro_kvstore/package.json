@@ -29,11 +29,11 @@
       "github:ChuMicro/ChuMicro-Bundle/chumicro_kvstore/core.py"
     ]
   ],
-  "version": "0.3.1",
+  "version": "0.3.2",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_msgpack",
-      "20260719.7"
+      "20260807.4"
     ]
   ]
 }
