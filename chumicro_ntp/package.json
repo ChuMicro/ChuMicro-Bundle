@@ -9,15 +9,15 @@
       "github:ChuMicro/ChuMicro-Bundle/chumicro_ntp/core.py"
     ]
   ],
-  "version": "0.13.0",
+  "version": "0.13.1",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
-      "20260719.8"
+      "20260807.6"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
-      "20260719.8"
+      "20260807.6"
     ]
   ]
 }
