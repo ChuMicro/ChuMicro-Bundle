@@ -17,15 +17,15 @@
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_config",
-      "20260808"
+      "20260808.1"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_sockets",
-      "20260808"
+      "20260808.1"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
-      "20260808"
+      "20260808.1"
     ]
   ]
 }
