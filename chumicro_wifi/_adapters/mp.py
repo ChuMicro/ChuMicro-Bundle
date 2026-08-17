@@ -14,6 +14,9 @@ except ImportError:
 # Magic value that disables CYW43 idle power-save mode.
 CYW43_PM_DISABLE = const(0xA11140)
 
+# ESP-IDF WIFI_PS_NONE: disables modem power-save on the esp32 stack.
+ESP32_PM_NONE = const(0)
+
 # Exact strings a board reports via sys.implementation._machine.
 CYW43_MACHINES = (
     "Raspberry Pi Pico W with RP2040",
@@ -31,6 +34,9 @@ def _get_machine_name():
 
 
 class MpWifiAdapter(WifiAdapter):
+    # Refined per-stack in __init__ ("mp_esp32" / "mp_rp2").
+    name = "mp"
+
     # MP's wlan.connect() returns before is_linked() reports success, so a False result is not a failure.
     connect_blocks = False
 
@@ -73,9 +79,12 @@ class MpWifiAdapter(WifiAdapter):
         # TX power needs the station active, so apply it after active(True).
         if config.tx_power_dbm is not None:
             self._apply_tx_power(config.tx_power_dbm)
-        if self._stack == "cyw43" and not config.power_save:
+        if not config.power_save:
+            pm_value = (
+                CYW43_PM_DISABLE if self._stack == "cyw43" else ESP32_PM_NONE
+            )
             try:
-                self._wlan.config(pm=CYW43_PM_DISABLE)
+                self._wlan.config(pm=pm_value)
             except (OSError, ValueError):
                 # Older MP firmware may not expose the pm knob; proceed at default power-save.
                 pass
@@ -106,7 +115,9 @@ class MpWifiAdapter(WifiAdapter):
         except (OSError, ValueError):
             pass
 
-    def connect(self, config):
+    def connect(self, config, timeout_ms=None):
+        # timeout_ms is unused: wlan.connect() dispatches a non-blocking
+        # join, so the caller bounds the attempt by polling is_linked().
         # Already linked: re-issuing wlan.connect() aborts and restarts the association on ESP-IDF.
         if self._wlan.isconnected():
             self._disable_supervisor_once()

@@ -1,7 +1,5 @@
 """``WifiConfig``: typed connection settings and a flat-key factory."""
 
-from chumicro_config import load_section, try_load_section
-
 
 class WifiConfig:
     """Connection configuration for ``WifiService``.
@@ -11,6 +9,10 @@ class WifiConfig:
         password: WPA passphrase.
         hostname: Hostname advertised on the AP, or ``None`` to skip it.
         connect_timeout_ms: Max wait for a single connect attempt, in ms (default 15 s).
+        first_connect_timeout_ms: Longer allowance for the first connect attempt
+            after construction, in ms, or ``None`` (default) to use
+            ``connect_timeout_ms``.  A cold radio's first association after
+            power-up takes longer than steady-state reconnects.
         reconnect_backoff_start_ms: Initial delay between reconnect attempts (default 1 s).
         reconnect_backoff_max_ms: Cap on the exponential reconnect backoff (default 60 s).
         reconnect_max: Failed attempts before terminal ``FAILED``; ``None`` (default) retries forever.
@@ -22,6 +24,7 @@ class WifiConfig:
     _OPTIONAL_DEFAULTS = {
         "hostname": None,
         "connect_timeout_ms": 15_000,
+        "first_connect_timeout_ms": None,
         "reconnect_backoff_start_ms": 1_000,
         "reconnect_backoff_max_ms": 60_000,
         "reconnect_max": None,
@@ -35,6 +38,7 @@ class WifiConfig:
         password: str,
         hostname: str | None = None,
         connect_timeout_ms: int = 15_000,
+        first_connect_timeout_ms: int | None = None,
         reconnect_backoff_start_ms: int = 1_000,
         reconnect_backoff_max_ms: int = 60_000,
         reconnect_max: int | None = None,
@@ -45,6 +49,7 @@ class WifiConfig:
         self.password = password
         self.hostname = hostname
         self.connect_timeout_ms = connect_timeout_ms
+        self.first_connect_timeout_ms = first_connect_timeout_ms
         self.reconnect_backoff_start_ms = reconnect_backoff_start_ms
         self.reconnect_backoff_max_ms = reconnect_backoff_max_ms
         self.reconnect_max = reconnect_max
@@ -62,6 +67,10 @@ class WifiConfig:
             chumicro_config.MissingConfigKey: ``wifi.ssid`` or ``wifi.password`` is absent.
             chumicro_config.InvalidConfigType: *config* is ``None`` or not a mapping.
         """
+        from chumicro_config import (
+            load_section,  # noqa: PLC0415 - lazy: keeps chumicro_config off deploys that construct WifiConfig directly
+        )
+
         return load_section(
             cls,
             config,
@@ -80,6 +89,10 @@ class WifiConfig:
         Returns:
             A ``WifiConfig`` instance, or ``None`` when the section is not configured.
         """
+        from chumicro_config import (
+            try_load_section,  # noqa: PLC0415 - lazy: keeps chumicro_config off deploys that construct WifiConfig directly
+        )
+
         return try_load_section(
             cls,
             config,

@@ -17,15 +17,15 @@
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_requests/generators.mpy"
     ]
   ],
-  "version": "0.19.1",
+  "version": "0.21.0",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_sockets",
-      "20260807.7"
+      "20260817"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
-      "20260807.7"
+      "20260817"
     ]
   ]
 }

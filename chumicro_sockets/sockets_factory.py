@@ -26,12 +26,16 @@ def connector_factory(*, radio=None, ssl_context=None):
     return factory
 
 
-def fixed_connector_factory(host, port, *, radio=None, ssl_context=None):
-    """Build a ``() -> SocketConnector`` factory for one fixed endpoint."""
+def fixed_connector_factory(host, port, *, use_tls=False, radio=None, ssl_context=None):
+    """Build a ``() -> SocketConnector`` factory for one fixed endpoint.
+
+    ``use_tls=True`` with no *ssl_context* dials TLS against the runtime's
+    default trust store; passing a context implies TLS on its own.
+    """
     def factory():
         return chumicro_sockets.connector(
             host, port,
-            tls=ssl_context is not None,
+            tls=use_tls or ssl_context is not None,
             context=ssl_context,
             radio=radio,
         )
@@ -66,8 +70,15 @@ def listener_factory(host, port, *, radio=None, ssl_context=None,
 
 
 def udp_socket_factory(*, radio=None):
-    """Build a ``() -> socket`` factory returning a fresh bound UDP socket."""
+    """Build a ``() -> socket`` factory returning a fresh bound non-blocking UDP socket.
+
+    ``setblocking(False)`` is applied here so every consumer of the
+    factory gets a tick-loop-safe socket; ``connector`` and ``listener``
+    already guarantee non-blocking transports themselves.
+    """
     def factory():
-        return chumicro_sockets.udp_socket(radio=radio)
+        udp_socket = chumicro_sockets.udp_socket(radio=radio)
+        udp_socket.setblocking(False)
+        return udp_socket
 
     return factory

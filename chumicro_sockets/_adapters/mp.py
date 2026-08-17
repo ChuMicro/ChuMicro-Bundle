@@ -156,11 +156,15 @@ def ssl_context_with_cert_and_key(cert_pem, key_pem):  # pragma: no cover - devi
 
 class _MpTLSListenerWrapper:  # pragma: no cover - device only
     def __init__(self, raw_listener, context):
-        self.sock = raw_listener
+        # .sock holds the raw pollable socket: the runner unwraps exactly one
+        # level (getattr(io_socket, "sock", io_socket)) to reach a
+        # poll-registrable object.
+        self.sock = raw_listener.sock
+        self._plain_listener = raw_listener
         self._context = context
 
     def accept(self):
-        new_wrapper, address = self.sock.accept()
+        new_wrapper, address = self._plain_listener.accept()
         # The handshake needs the raw MP socket, not the _MpSocketWrapper polyfill.
         underlying = new_wrapper.sock
         underlying.setblocking(True)
@@ -294,7 +298,18 @@ class _MpConnector(SocketConnector):  # pragma: no cover - device only
                         "TCP connect failed (POLLERR/POLLHUP)",
                     )
                 if self._tls:
-                    # wrap_socket blocks until the handshake completes; the next tick promotes to ready.
+                    # The handshake blocks by design: MicroPython exposes no
+                    # safe way to observe deferred-handshake completion.  Its
+                    # standalone mbedTLS config omits getpeercert entirely,
+                    # SSLSocket.cipher() dereferences a NULL ciphersuite and
+                    # crashes while the handshake is in flight, and a
+                    # zero-length write short-circuits in py/stream.c before
+                    # reaching mbedTLS.  A one-byte readinto does step the
+                    # handshake and does surface certificate-verify failures,
+                    # but nothing distinguishes "handshake done, no data" from
+                    # "still in flight", so a stepped bring-up cannot promote
+                    # provably.  The blocking wrap keeps verify failures at
+                    # bring-up, where the connector's fail path owns them.
                     self._context = _resolve_default_context(self._context)
                     # The handshake needs a blocking socket; flip to blocking for it and back after.
                     raw_socket = self.socket

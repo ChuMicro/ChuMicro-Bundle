@@ -25,15 +25,15 @@
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_wifi/service.mpy"
     ]
   ],
-  "version": "0.8.2",
+  "version": "0.11.0",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_config",
-      "20260807.10"
+      "20260817"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
-      "20260807.10"
+      "20260817"
     ]
   ]
 }

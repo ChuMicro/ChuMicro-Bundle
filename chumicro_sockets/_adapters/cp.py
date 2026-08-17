@@ -70,7 +70,13 @@ class _CPUDPWrapper:
         # Bare-metal socketpool lacks getsockname (the unix build has it); forward only when present.
         if hasattr(sock, "getsockname"):
             self.getsockname = sock.getsockname
-        self.recvfrom_into = sock.recvfrom_into
+
+    def recvfrom_into(self, buffer, nbytes=0):
+        # CP's socketpool signature is (buffer) with no nbytes; slice a view
+        # so the documented (buffer, nbytes=0) surface holds on CP too.
+        if nbytes:
+            return self.sock.recvfrom_into(memoryview(buffer)[:nbytes])
+        return self.sock.recvfrom_into(buffer)
 
     def sendto(self, data, host, port):
         return self.sock.sendto(data, (host, port))
@@ -128,21 +134,18 @@ def ssl_context_with_ca(ca_pem):
     """
     # Validate before importing ssl, which is absent on the CP unix-port.
     if isinstance(ca_pem, (bytes, bytearray)):
-        if b"-----BEGIN CERTIFICATE-----" not in bytes(ca_pem):
-            raise ValueError(
-                "CircuitPython ssl_context_with_ca requires PEM input "
-                "(-----BEGIN CERTIFICATE-----); CP's load_verify_locations "
-                "binding cannot accept DER.  Convert to PEM, or pass DER "
-                "only on MicroPython / CPython.",
-            )
-        ca_pem = bytes(ca_pem).decode("ascii")
-    elif "-----BEGIN CERTIFICATE-----" not in ca_pem:
+        pem_marker_found = b"-----BEGIN CERTIFICATE-----" in bytes(ca_pem)
+    else:
+        pem_marker_found = "-----BEGIN CERTIFICATE-----" in ca_pem
+    if not pem_marker_found:
         raise ValueError(
             "CircuitPython ssl_context_with_ca requires PEM input "
             "(-----BEGIN CERTIFICATE-----); CP's load_verify_locations "
             "binding cannot accept DER.  Convert to PEM, or pass DER "
             "only on MicroPython / CPython.",
         )
+    if isinstance(ca_pem, (bytes, bytearray)):
+        ca_pem = bytes(ca_pem).decode("ascii")
     import ssl  # noqa: PLC0415
 
     context = ssl.create_default_context()

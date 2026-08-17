@@ -2,8 +2,6 @@
 
 import sys
 
-from chumicro_timing import ticks as _DEFAULT_TICKS
-
 from chumicro_wifi.config import WifiConfig
 
 
@@ -18,17 +16,19 @@ class WifiState:
     FAILED = "failed"
 
 
-def _select_adapter():
+def _select_adapter(radio=None):
     # Import per runtime so a board only parses the adapter it uses.
+    # radio reaches only the CircuitPython adapter; the other runtimes
+    # acquire their own station handle and ignore it.
     runtime_name = sys.implementation.name
     if runtime_name == "circuitpython":  # pragma: no cover - CP runtime path
         from chumicro_wifi._adapters.cp import CpWifiAdapter
-        return CpWifiAdapter()
+        return CpWifiAdapter(radio=radio)
     if runtime_name == "micropython":  # pragma: no cover - MP runtime path
         from chumicro_wifi._adapters.mp import MpWifiAdapter
         return MpWifiAdapter()
-    from chumicro_wifi.testing import FakeWifiAdapter
-    return FakeWifiAdapter()
+    from chumicro_wifi._adapters.cpython import CpythonWifiAdapter
+    return CpythonWifiAdapter()
 
 
 class WifiService:
@@ -40,6 +40,42 @@ class WifiService:
         ticks: Optional ``chumicro_timing.ticks``-shaped source; defaults to the real clock.
     """
 
+    @classmethod
+    def from_config(
+        cls,
+        config: object,
+        *,
+        radio: object | None = None,
+        ticks: object | None = None,
+        **constructor_kwargs: object,
+    ) -> "WifiService":
+        """Build a :class:`WifiService` from runtime config.
+
+        The ``wifi.*`` config keys carry the deployment-varying values
+        (credentials, timeouts, backoff, power tuning) and load through
+        :meth:`WifiConfig.from_config`; any other constructor knob
+        passes through verbatim as a keyword, and an explicit keyword
+        wins over its config-derived value.
+
+        Args:
+            config: A :class:`chumicro_config.RuntimeConfig` or plain flat dict.
+            radio: CircuitPython radio handle for the runtime adapter;
+                ignored on MicroPython and CPython, and unused when an
+                explicit ``adapter=`` is passed.
+            ticks: Optional tick source, forwarded to the constructor.
+            **constructor_kwargs: Any other constructor knob (e.g.
+                ``adapter=``), passed through verbatim.
+
+        Raises:
+            chumicro_config.MissingConfigKey: ``wifi.ssid`` or ``wifi.password`` is absent.
+            chumicro_config.InvalidConfigType: *config* is ``None`` or not a mapping.
+        """
+        kwargs: dict = {"ticks": ticks}
+        if radio is not None and "adapter" not in constructor_kwargs:
+            kwargs["adapter"] = _select_adapter(radio=radio)
+        kwargs.update(constructor_kwargs)
+        return cls(WifiConfig.from_config(config), **kwargs)
+
     def __init__(
         self,
         config: WifiConfig,
@@ -49,7 +85,13 @@ class WifiService:
     ) -> None:
         self._config = config
         self.adapter = adapter if adapter is not None else _select_adapter()
-        self._ticks = ticks if ticks is not None else _DEFAULT_TICKS
+        if ticks is not None:
+            self._ticks = ticks
+        else:
+            from chumicro_timing import (
+                ticks as real_ticks,  # noqa: PLC0415 - DI fallback keeps the substrate off BYO-ticks deploys
+            )
+            self._ticks = real_ticks
 
         self.state = WifiState.DISCONNECTED
         self.last_error = None
@@ -58,9 +100,12 @@ class WifiService:
         self._reconnect_attempts = 0
         # Absolute-tick deadline of an in-flight join on a non-blocking adapter; None otherwise.
         self._attempt_deadline_ms = None
+        # True once the first adapter.connect() has been dispatched; gates the first-association grace.
+        self._first_connect_dispatched = False
         self._state_callbacks = []
-
-        self.adapter.configure(self._config)
+        # Radio I/O stays out of the constructor: configure() runs on the
+        # first connect attempt, inside the tick loop.
+        self._configured = False
 
     @property
     def connected(self):
@@ -117,9 +162,14 @@ class WifiService:
         self._attempt_connect(now_ms)
 
     def _attempt_connect(self, now_ms):
+        timeout_ms = self._attempt_timeout_ms()
         raised = False
         try:
-            ok = self.adapter.connect(self._config)
+            if not self._configured:
+                self.adapter.configure(self._config)
+                self._configured = True
+            self._first_connect_dispatched = True
+            ok = self.adapter.connect(self._config, timeout_ms=timeout_ms)
         except Exception as error:  # noqa: BLE001 - adapter errors flow through last_error
             self.last_error = error
             ok = False
@@ -137,12 +187,22 @@ class WifiService:
         if not self.adapter.connect_blocks:
             # Non-blocking substrate: join dispatched, poll is_linked() over the timeout window.
             self._attempt_deadline_ms = self._ticks.ticks_add(
-                now_ms, self._config.connect_timeout_ms,
+                now_ms, timeout_ms,
             )
             return
 
         # Blocking substrate: connect() already waited, so False is a settled failure.
         self._register_failed_attempt()
+
+    def _attempt_timeout_ms(self):
+        # first_connect_timeout_ms covers only the first dispatched join:
+        # a cold radio's first association after power-up takes longer
+        # than steady-state reconnects, and the first dial warms the
+        # radio whatever its outcome.
+        grace_ms = self._config.first_connect_timeout_ms
+        if grace_ms is not None and not self._first_connect_dispatched:
+            return grace_ms
+        return self._config.connect_timeout_ms
 
     def _poll_in_flight(self, now_ms):
         if self.adapter.is_linked():
@@ -187,7 +247,10 @@ class WifiService:
             try:
                 callback(old_state, new_state)
             except Exception as error:  # noqa: BLE001 - callbacks are user code
-                self.last_error = error
+                # Record only into an empty slot: the adapter failure that
+                # caused this transition must stay readable in last_error.
+                if self.last_error is None:
+                    self.last_error = error
 
     def _reset_backoff(self):
         self._current_backoff_ms = self._config.reconnect_backoff_start_ms

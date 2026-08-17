@@ -13,11 +13,11 @@
       "github:ChuMicro/ChuMicro-Bundle/chumicro_config/section.py"
     ]
   ],
-  "version": "0.7.4",
+  "version": "0.7.5",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_msgpack",
-      "20260807.2"
+      "20260817"
     ]
   ]
 }

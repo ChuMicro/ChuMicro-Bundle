@@ -62,19 +62,19 @@ pip install chumicro-timing
 
 | Library | Version | Description |
 | --- | --- | --- |
-| [**chumicro-compat**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/compat) | 0.3.2 | Cross-runtime compatibility polyfills for CircuitPython, MicroPython, and CPython: functools.partial and more. |
-| [**chumicro-config**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/config) | 0.7.4 | Standardized runtime-config helpers for ChuMicro libraries: section loader plus on-device runtime-config reader. |
-| [**chumicro-http_server**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/http_server) | 0.19.1 | Non-blocking HTTP/1.1 server for CircuitPython, MicroPython, and CPython. |
-| [**chumicro-kvstore**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/kvstore) | 0.3.2 | Tiny mutable key-value store for persisted runtime state (counters, timestamps, tokens) across CircuitPython, MicroPython, and CPython. |
-| [**chumicro-mqtt**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/mqtt) | 0.28.2 | Non-blocking MQTT 3.1.1 client (QoS 0+1) for CircuitPython, MicroPython, and CPython. |
-| [**chumicro-msgpack**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/msgpack) | 0.2.3 | Compact MessagePack serialization for CircuitPython, MicroPython, and CPython: delegates to the native C module when available. |
-| [**chumicro-ntp**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/ntp) | 0.13.1 | Runner-shaped SNTP client over an injected UDP socket: pure Python, cross-runtime. |
-| [**chumicro-requests**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/requests) | 0.19.1 | Non-blocking HTTP/1.1 client for CircuitPython, MicroPython, and CPython. |
-| [**chumicro-runner**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/runner) | 0.19.2 | Tick-based task runner for CircuitPython, MicroPython, and CPython: non-blocking check/handle scheduling without async. |
-| [**chumicro-sockets**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/sockets) | 0.20.0 | Cross-runtime TCP + TLS sockets for CircuitPython, MicroPython, and CPython. |
-| [**chumicro-timing**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/timing) | 0.8.1 | Wraparound-safe millisecond tick helpers plus wait value objects (deadlines, rates, signals) for CircuitPython, MicroPython, and CPython. |
-| [**chumicro-websockets**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/websockets) | 0.25.1 | Non-blocking WebSocket (RFC 6455) client and server for CircuitPython, MicroPython, and CPython. |
-| [**chumicro-wifi**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/wifi) | 0.8.2 | Unified wifi supervisor across CircuitPython, MicroPython, and CPython: sole-supervisor model with reconnect, state machine, and per-runtime adapters. |
+| [**chumicro-compat**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/compat) | 0.3.3 | Cross-runtime compatibility polyfills for CircuitPython, MicroPython, and CPython: functools.partial and more. |
+| [**chumicro-config**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/config) | 0.7.5 | Standardized runtime-config helpers for ChuMicro libraries: section loader plus on-device runtime-config reader. |
+| [**chumicro-http_server**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/http_server) | 0.21.0 | Non-blocking HTTP/1.1 server for CircuitPython, MicroPython, and CPython. |
+| [**chumicro-kvstore**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/kvstore) | 0.3.4 | Tiny mutable key-value store for persisted runtime state (counters, timestamps, tokens) across CircuitPython, MicroPython, and CPython. |
+| [**chumicro-mqtt**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/mqtt) | 0.30.0 | Non-blocking MQTT 3.1.1 client (QoS 0+1) for CircuitPython, MicroPython, and CPython. |
+| [**chumicro-msgpack**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/msgpack) | 0.2.5 | Compact MessagePack serialization for CircuitPython, MicroPython, and CPython: delegates to the native C module when available. |
+| [**chumicro-ntp**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/ntp) | 0.15.0 | Runner-shaped SNTP client over an injected UDP socket: pure Python, cross-runtime. |
+| [**chumicro-requests**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/requests) | 0.21.0 | Non-blocking HTTP/1.1 client for CircuitPython, MicroPython, and CPython. |
+| [**chumicro-runner**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/runner) | 0.22.0 | Tick-based task runner for CircuitPython, MicroPython, and CPython: non-blocking check/handle scheduling without async. |
+| [**chumicro-sockets**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/sockets) | 0.21.1 | Cross-runtime TCP, TLS, and UDP sockets for CircuitPython, MicroPython, and CPython |
+| [**chumicro-timing**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/timing) | 0.8.2 | Wraparound-safe millisecond tick helpers plus wait value objects (deadlines, rates, signals) for CircuitPython, MicroPython, and CPython. |
+| [**chumicro-websockets**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/websockets) | 0.27.0 | Non-blocking WebSocket (RFC 6455) client and server for CircuitPython, MicroPython, and CPython. |
+| [**chumicro-wifi**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/wifi) | 0.11.0 | Unified wifi supervisor across CircuitPython, MicroPython, and CPython: sole-supervisor model with reconnect, state machine, and per-runtime adapters. |
 
 Each root directory contains `.py` source and a `package.json` manifest for mip.  Pre-compiled `.mpy` bytecode is stored in two runtime-specific directories:
 

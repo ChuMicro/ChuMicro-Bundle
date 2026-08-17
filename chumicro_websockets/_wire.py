@@ -68,7 +68,6 @@ WS_VERSION = "13"
 
 CRLF = b"\r\n"
 
-CRLF_CRLF = b"\r\n\r\n"
 
 #: Default per-tick recv cap; small enough to keep tick latency LED-friendly.
 DEFAULT_RECV_BUDGET_PER_TICK = const(1024)
@@ -77,6 +76,9 @@ DEFAULT_SEND_BUDGET_PER_TICK = const(1024)
 
 #: Default inbound message cap; 16 KB leaves headroom on a 256 KB-RAM board.
 DEFAULT_MAX_MESSAGE_BYTES = const(16384)
+
+#: Default cap on the opening-handshake header block.
+DEFAULT_MAX_HEADER_BYTES = const(8192)
 
 DEFAULT_MAX_TX_QUEUE_SIZE = const(8)
 
@@ -113,13 +115,10 @@ CONTROL_OPCODES = frozenset({OPCODE_CLOSE, OPCODE_PING, OPCODE_PONG})
 CLOSE_NORMAL = const(1000)
 CLOSE_GOING_AWAY = const(1001)
 CLOSE_PROTOCOL_ERROR = const(1002)
-CLOSE_UNSUPPORTED_DATA = const(1003)
 CLOSE_NO_STATUS_RCVD = const(1005)  # reserved; never sent on the wire
 CLOSE_ABNORMAL = const(1006)        # reserved; never sent on the wire
 CLOSE_BAD_DATA = const(1007)
-CLOSE_POLICY_VIOLATION = const(1008)
 CLOSE_TOO_BIG = const(1009)
-CLOSE_MISSING_EXTN = const(1010)
 CLOSE_INTERNAL_ERROR = const(1011)
 CLOSE_TLS_HANDSHAKE = const(1015)   # reserved; never sent on the wire
 
@@ -359,7 +358,7 @@ class HandshakeParseState:
 class _HandshakeLineParser:
     _initial_state: str = ""
 
-    def __init__(self, *, max_header_bytes: int = 8192):
+    def __init__(self, *, max_header_bytes: int = DEFAULT_MAX_HEADER_BYTES):
         self._max_header_bytes = max_header_bytes
         self._buffer = bytearray()
         # Read cursor into _buffer; slicing off consumed bytes would fragment the heap.
@@ -411,10 +410,14 @@ class _HandshakeLineParser:
         return position - self._read_offset
 
     def _live_slice(self, start, length=None):
+        # A memoryview, not a bytearray slice: every caller immediately
+        # wraps the return in bytes(), so each line is copied once, and
+        # the short-lived view is dead before the buffer next resizes.
         absolute_start = self._read_offset + start
+        view = memoryview(self._buffer)
         if length is None:
-            return self._buffer[absolute_start:]
-        return self._buffer[absolute_start:absolute_start + length]
+            return view[absolute_start:]
+        return view[absolute_start:absolute_start + length]
 
     def _consume(self, count):
         self._read_offset += count
@@ -476,7 +479,7 @@ class HandshakeResponseParser(_HandshakeLineParser):
 
     _initial_state = HandshakeParseState.STATUS_LINE
 
-    def __init__(self, expected_accept: str, *, max_header_bytes: int = 8192):
+    def __init__(self, expected_accept: str, *, max_header_bytes: int = DEFAULT_MAX_HEADER_BYTES):
         super().__init__(max_header_bytes=max_header_bytes)
         self._expected_accept = expected_accept
         self.status_code = None
@@ -524,7 +527,7 @@ class HandshakeRequestParser(_HandshakeLineParser):
 
     _initial_state = HandshakeParseState.REQUEST_LINE
 
-    def __init__(self, *, max_header_bytes: int = 8192):
+    def __init__(self, *, max_header_bytes: int = DEFAULT_MAX_HEADER_BYTES):
         super().__init__(max_header_bytes=max_header_bytes)
         self.method = ""
         self.path = ""
@@ -593,6 +596,16 @@ class FrameParseState:
     DRAINING_PAYLOAD = "draining_payload"
     FRAME_READY = "frame_ready"
     ERROR = "error"
+
+
+# Fixed byte width of each header field the parser accumulates before
+# dispatching it (RFC 6455 §5.2 frame layout).
+_HEADER_FIELD_SIZES = {
+    FrameParseState.READING_HEADER: 2,
+    FrameParseState.READING_LEN16: 2,
+    FrameParseState.READING_LEN64: 8,
+    FrameParseState.READING_MASK: 4,
+}
 
 
 class FrameParser:
@@ -708,14 +721,7 @@ class FrameParser:
                     self.state = FrameParseState.FRAME_READY
                 continue
 
-            if state == FrameParseState.READING_HEADER:
-                field_size = 2
-            elif state == FrameParseState.READING_LEN16:
-                field_size = 2
-            elif state == FrameParseState.READING_LEN64:
-                field_size = 8
-            else:  # READING_MASK
-                field_size = 4
+            field_size = _HEADER_FIELD_SIZES[state]
             header_len = self._header_len
             need = field_size - header_len
             take = need if need <= remaining else remaining

@@ -7,6 +7,7 @@ import errno
 from collections import deque
 
 from chumicro_mqtt._wire import (
+    DEFAULT_RX_BUFFER_SIZE,
     PACKET_CONNACK,
     PACKET_DISCONNECT,
     PACKET_PINGREQ,
@@ -183,8 +184,14 @@ class MQTTClient:
         socket: object | None = None,
         transport_factory: object | None = None,
         ticks: object | None = None,
+        **constructor_kwargs: object,
     ) -> "MQTTClient":
         """Build an :class:`MQTTClient` from runtime config.
+
+        Config keys carry the deployment-varying values (broker address,
+        credentials, client id, keepalive, offline policy).  Every other
+        constructor knob is reachable as a keyword and passes through
+        verbatim; an explicit keyword wins over its config-derived value.
 
         Raises:
             ValueError: *config* is not a mapping-like object.
@@ -221,16 +228,18 @@ class MQTTClient:
                 config["mqtt.broker.host"], config["mqtt.broker.port"],
                 radio=radio, ssl_context=ssl_context,
             )
-        return cls(
-            socket=socket,
-            transport_factory=transport_factory,
-            client_id=config.get("mqtt.client_id") or default_client_id(),
-            keep_alive_seconds=config.get("mqtt.keep_alive_seconds", 60),
-            username=config.get("mqtt.username"),
-            password=config.get("mqtt.password"),
-            when_disconnected=config.get("mqtt.when_disconnected", "queue"),
-            ticks=ticks,
-        )
+        kwargs = {
+            "socket": socket,
+            "transport_factory": transport_factory,
+            "client_id": config.get("mqtt.client_id") or default_client_id(),
+            "keep_alive_seconds": config.get("mqtt.keep_alive_seconds", 60),
+            "username": config.get("mqtt.username"),
+            "password": config.get("mqtt.password"),
+            "when_disconnected": config.get("mqtt.when_disconnected", "queue"),
+            "ticks": ticks,
+        }
+        kwargs.update(constructor_kwargs)
+        return cls(**kwargs)
 
     def __init__(
         self,
@@ -249,7 +258,7 @@ class MQTTClient:
         will_qos: int = 0,
         will_retain: bool = False,
         rx_buffer_size: int | None = None,
-        when_oversized: WhenOversized = WhenOversized.DROP_WITH_EVENT,
+        when_oversized: str = WhenOversized.DROP_WITH_EVENT,
         when_disconnected: str = "queue",
         pre_connect_queue_size: int = 8,
         recv_budget_per_tick: int = 1024,
@@ -326,11 +335,10 @@ class MQTTClient:
             from chumicro_timing import ticks  # noqa: PLC0415 - DI fallback
         self._ticks = ticks
 
-        decoder_kwargs = {}
-        if rx_buffer_size is not None:
-            decoder_kwargs["rx_buffer_size"] = rx_buffer_size
-        self._decoder_kwargs = decoder_kwargs
-        self._decoder = PacketDecoder(**decoder_kwargs)
+        self._rx_buffer_size = (
+            rx_buffer_size if rx_buffer_size is not None else DEFAULT_RX_BUFFER_SIZE
+        )
+        self._decoder = PacketDecoder(rx_buffer_size=self._rx_buffer_size)
 
         self.state = ProtocolState.DISCONNECTED
         self._in_flight = {}
@@ -378,16 +386,8 @@ class MQTTClient:
             self._self_heal_attempts = 0
             self._self_heal_retry_at_ticks = None
             if self._socket is None:
-                try:
-                    self._connector = self._transport_factory()
-                except Exception as factory_error:  # noqa: BLE001 - documented: all factory errors -> FAILED
-                    self.last_error = MQTTError(
-                        f"connector factory failed: {factory_error}",
-                    )
-                    self.state = ProtocolState.FAILED
-                    return
-                self._transport_deadline_ticks = self._deadline(self._ack_timeout_ms)
-                self.state = ProtocolState.AWAITING_TRANSPORT
+                if not self._start_transport():
+                    self._enter_failed()
                 return
             self._enqueue_connect_packet()
             self.state = ProtocolState.CONNECTING
@@ -402,7 +402,22 @@ class MQTTClient:
         """Suspend timer-driven reconnection until the next :meth:`connect`."""
         self._reconnect_held = True
 
-    def _enqueue_connect_packet(self):
+    def _start_transport(self, now_ms=None):
+        # Build the connector and enter AWAITING_TRANSPORT; False on factory error.
+        try:
+            self._connector = self._transport_factory()
+        except Exception as factory_error:  # noqa: BLE001 - documented: all factory errors -> FAILED
+            self.last_error = MQTTError(
+                f"connector factory failed: {factory_error}",
+            )
+            return False
+        self._transport_deadline_ticks = self._deadline(
+            self._ack_timeout_ms, now_ms=now_ms,
+        )
+        self.state = ProtocolState.AWAITING_TRANSPORT
+        return True
+
+    def _enqueue_connect_packet(self, now_ms=None):
         packet = encode_connect(
             client_id=self._client_id,
             keep_alive_seconds=self._keep_alive_seconds,
@@ -415,12 +430,7 @@ class MQTTClient:
             will_retain=self._will_retain,
         )
         self._enqueue_user_tx(packet)
-        self._pending_responses.append(
-            PendingResponse(
-                awaiting=_AWAIT_CONNACK,
-                deadline_ticks=self._deadline(self._ack_timeout_ms),
-            ),
-        )
+        self._await_ack(_AWAIT_CONNACK, now_ms=now_ms)
 
     def disconnect(self):
         """Queue a DISCONNECT packet, close the socket, mark DISCONNECTED."""
@@ -458,7 +468,7 @@ class MQTTClient:
         self._send_deadline_ticks = None
         self._transport_deadline_ticks = None
         self._pending_responses.clear()
-        self._decoder = PacketDecoder(**self._decoder_kwargs)
+        self._decoder = PacketDecoder(rx_buffer_size=self._rx_buffer_size)
 
     def set_will(
         self,
@@ -517,7 +527,7 @@ class MQTTClient:
         if isinstance(payload, str):
             payload_bytes = payload.encode("utf-8")
         else:
-            payload_bytes = bytes(payload)  # pragma: no cover - bytes-passthrough trivial path
+            payload_bytes = bytes(payload)
 
         if self.state != ProtocolState.CONNECTED:
             self._publish_disconnected(topic, payload_bytes, qos, retain, on_publish)
@@ -538,13 +548,16 @@ class MQTTClient:
             )
         queue.append((topic, payload_bytes, qos, retain, on_publish))
 
-    def _drain_pre_connect_queue(self):
+    def _drain_pre_connect_queue(self, now_ms=None):
         queue = self._pre_connect_queue
         while queue:
             topic, payload_bytes, qos, retain, on_publish = queue.popleft()
-            self._do_publish(topic, payload_bytes, qos, retain, on_publish)
+            self._do_publish(
+                topic, payload_bytes, qos, retain, on_publish, now_ms=now_ms,
+            )
 
-    def _do_publish(self, topic, payload_bytes, qos, retain, on_publish):
+    def _do_publish(self, topic, payload_bytes, qos, retain, on_publish,
+                    now_ms=None):
         if qos == 0:
             packet = encode_publish(
                 topic=topic, payload=payload_bytes, qos=0, retain=retain,
@@ -580,7 +593,7 @@ class MQTTClient:
         self._in_flight[packet_id] = InFlightPublish(
             packet_id=packet_id,
             packet_bytes=packet,
-            deadline_ticks=self._deadline(self._ack_timeout_ms),
+            deadline_ticks=self._deadline(self._ack_timeout_ms, now_ms=now_ms),
             callback=_wrapped_callback,
         )
         try:
@@ -619,15 +632,7 @@ class MQTTClient:
                 packet_id=packet_id, subscriptions=[(topic, qos)],
             )
             self._enqueue_user_tx(packet)
-            self._pending_responses.append(
-                PendingResponse(
-                    awaiting=_AWAIT_SUBACK,
-                    deadline_ticks=self._deadline(self._ack_timeout_ms),
-                    packet_id=packet_id,
-                    callback=None,
-                    topic=topic,
-                ),
-            )
+            self._await_ack(_AWAIT_SUBACK, packet_id=packet_id, topic=topic)
         self._subscriptions[topic] = [qos, _wrapped]
 
     def unsubscribe(self, topic, *, on_unsubscribe=None):
@@ -645,14 +650,7 @@ class MQTTClient:
                 on_unsubscribe(topic)
             self.on_unsubscribe(topic)
 
-        self._pending_responses.append(
-            PendingResponse(
-                awaiting=_AWAIT_UNSUBACK,
-                deadline_ticks=self._deadline(self._ack_timeout_ms),
-                packet_id=packet_id,
-                callback=_wrapped,
-            ),
-        )
+        self._await_ack(_AWAIT_UNSUBACK, packet_id=packet_id, callback=_wrapped)
 
     def next_message(self):
         """Suspend until the next inbound PUBLISH; return it, or ``None`` when parked."""
@@ -683,7 +681,7 @@ class MQTTClient:
             self._permanent_failure or self._reconnect_held
         ):
             return False
-        return self.state is not ProtocolState.DISCONNECTED
+        return self.state != ProtocolState.DISCONNECTED
 
     @property
     def io_socket(self):
@@ -702,7 +700,7 @@ class MQTTClient:
             if self._connector is None:
                 return 0
             connector_interest = self._connector.io_interest(now_ms)
-            return (connector_interest & _IO_READ) | (connector_interest & _IO_WRITE)
+            return connector_interest & (_IO_READ | _IO_WRITE)
         interest = 0
         if (
             self.state in (ProtocolState.CONNECTING, ProtocolState.CONNECTED)
@@ -726,7 +724,7 @@ class MQTTClient:
         self.last_error = MQTTError(
             f"socket error from runner.wait (poll eventmask 0x{eventmask:x})",
         )
-        self.state = ProtocolState.FAILED
+        self._enter_failed()
 
     def next_deadline(self, now_ms):
         """Earliest tick at which ``handle()`` must run even on a quiet socket."""
@@ -753,7 +751,9 @@ class MQTTClient:
             return None
         ticks_diff = self._ticks.ticks_diff
         nearest = None
-        if self.state == ProtocolState.CONNECTED:
+        # With keepalive disabled the ping due-tick is never re-armed, so
+        # reporting it would pin next_deadline in the past and busy-spin wait().
+        if self.state == ProtocolState.CONNECTED and self._keepalive_enabled:
             nearest = self._next_ping_due_ticks
         for pending in self._pending_responses:
             candidate = pending.deadline_ticks
@@ -799,10 +799,22 @@ class MQTTClient:
             self._drain_tx_queue()
         except MQTTError as error:
             self.last_error = error
-            self.state = ProtocolState.FAILED
+            self._enter_failed()
         except OSError as error:
             self.last_error = MQTTError(f"socket error: {error}")
-            self.state = ProtocolState.FAILED
+            self._enter_failed()
+
+    def _enter_failed(self):
+        # State settles before the callback fires, so a reentrant
+        # connect() / hold() / disconnect() from inside on_disconnect
+        # sees FAILED rather than the dying state.  Connect attempts
+        # that never established (CONNECTING / AWAITING_TRANSPORT, the
+        # self-heal retry cycle) stay silent: on_disconnect reports the
+        # end of an established session, mirroring on_connect.
+        was_connected = self.state == ProtocolState.CONNECTED
+        self.state = ProtocolState.FAILED
+        if was_connected:
+            self.on_disconnect()
 
     def _self_heal_active(self):
         return (
@@ -868,7 +880,7 @@ class MQTTClient:
             f"transport connect attempt timed out after "
             f"{self._ack_timeout_ms} ms (connector phase: {phase})",
         )
-        self.state = ProtocolState.FAILED
+        self._enter_failed()
         return True
 
     def _advance_connector(self, now_ms):
@@ -879,7 +891,7 @@ class MQTTClient:
             self._connector = None
             self._transport_deadline_ticks = None
             _force_non_blocking(self._socket)
-            self._enqueue_connect_packet()
+            self._enqueue_connect_packet(now_ms=now_ms)
             self.state = ProtocolState.CONNECTING
             return True
         if connector.state == "failed":
@@ -888,7 +900,7 @@ class MQTTClient:
             )
             self._connector = None
             self._transport_deadline_ticks = None
-            self.state = ProtocolState.FAILED
+            self._enter_failed()
             return False
         return False
 
@@ -1138,7 +1150,7 @@ class MQTTClient:
             return
         if packet.packet_type == PACKET_UNSUBACK:
             matched = self._discard_pending(
-                _AWAIT_UNSUBACK, packet_id=packet.packet_id, callback_arg=None,
+                _AWAIT_UNSUBACK, packet_id=packet.packet_id,
             )
             if not matched:
                 raise MQTTProtocolError(
@@ -1167,7 +1179,7 @@ class MQTTClient:
             self.last_error = MQTTConnectError(message, return_code=packet.return_code)
             if packet.return_code in _PERMANENT_CONNACK_CODES:
                 self._permanent_failure = True
-            self.state = ProtocolState.FAILED
+            self._enter_failed()
             return
         self.state = ProtocolState.CONNECTED
         self._self_heal_attempts = 0
@@ -1176,12 +1188,12 @@ class MQTTClient:
         # Replay subscriptions unless the broker resumed our session
         # (clean_session=False and session_present=1), where they still live.
         if self._clean_session or not packet.session_present:
-            self._replay_subscriptions()
+            self._replay_subscriptions(now_ms=now_ms)
         # Drain buffered publishes before on_connect, so they precede any it issues.
-        self._drain_pre_connect_queue()
+        self._drain_pre_connect_queue(now_ms=now_ms)
         self.on_connect()
 
-    def _replay_subscriptions(self):
+    def _replay_subscriptions(self, now_ms=None):
         if not self._subscriptions:
             return
         for topic, entry in self._subscriptions.items():
@@ -1193,14 +1205,8 @@ class MQTTClient:
             # Route through headroom, not the user cap: a full user queue would
             # fault into a reconnect-replay loop that never reconnects.
             self._enqueue_internal_tx(packet)
-            self._pending_responses.append(
-                PendingResponse(
-                    awaiting=_AWAIT_SUBACK,
-                    deadline_ticks=self._deadline(self._ack_timeout_ms),
-                    packet_id=packet_id,
-                    callback=None,
-                    topic=topic,
-                ),
+            self._await_ack(
+                _AWAIT_SUBACK, packet_id=packet_id, topic=topic, now_ms=now_ms,
             )
 
     def _evict_rejected_subscription(self, packet_id):
@@ -1211,7 +1217,7 @@ class MQTTClient:
                     self._subscriptions.pop(pending.topic, None)
                 return
 
-    def _discard_pending(self, awaiting, *, packet_id, callback_arg=None):
+    def _discard_pending(self, awaiting, *, packet_id):
         # Remove the matching PendingResponse and fire its callback; returns it or None.
         for index, pending in enumerate(self._pending_responses):
             if pending.awaiting != awaiting:
@@ -1220,10 +1226,7 @@ class MQTTClient:
                 continue
             self._pending_responses.pop(index)
             if pending.callback is not None:
-                if callback_arg is not None:
-                    pending.callback(callback_arg)
-                else:
-                    pending.callback()
+                pending.callback()
             return pending
         return None
 
@@ -1239,7 +1242,7 @@ class MQTTClient:
                     f"PUBLISH packet_id {entry.packet_id} exceeded "
                     f"retry limit {self._publish_retry_max}",
                 )
-                self.state = ProtocolState.FAILED
+                self._enter_failed()
                 return
             # DUP flag is bit 3 of byte 0 (MQTT 3.1.1 §4.3.2); identical every
             # retry, so build it once and reuse.
@@ -1260,7 +1263,7 @@ class MQTTClient:
             self.last_error = MQTTError(
                 f"timed out awaiting {pending.awaiting}",
             )
-            self.state = ProtocolState.FAILED
+            self._enter_failed()
             return
 
         if self._send_deadline_ticks is not None:
@@ -1269,7 +1272,7 @@ class MQTTClient:
                     "send timeout: tx queue made no progress for "
                     f"{self._send_timeout_ms} ms",
                 )
-                self.state = ProtocolState.FAILED
+                self._enter_failed()
                 return
 
     def _check_keepalive(self, now_ms):
@@ -1284,13 +1287,15 @@ class MQTTClient:
             if pending.awaiting == _AWAIT_PINGRESP:
                 return
         if not self._enqueue_internal_tx(PACKET_PINGREQ):
+            # The tx queue is at its hard cap, so outbound traffic is already
+            # flowing and the broker sees activity; retry a full interval out
+            # rather than leaving the due-tick in the past, which would
+            # busy-spin wait() until the queue drains.
+            self._next_ping_due_ticks = self._deadline(
+                self._ping_interval_ms, now_ms=now_ms,
+            )
             return
-        self._pending_responses.append(
-            PendingResponse(
-                awaiting=_AWAIT_PINGRESP,
-                deadline_ticks=self._deadline(self._ack_timeout_ms, now_ms=now_ms),
-            ),
-        )
+        self._await_ack(_AWAIT_PINGRESP, now_ms=now_ms)
         self._next_ping_due_ticks = self._deadline(self._ping_interval_ms, now_ms=now_ms)
 
     def _deadline(self, offset_ms, *, now_ms=None):
@@ -1298,3 +1303,16 @@ class MQTTClient:
         if now_ms is None:
             now_ms = self._ticks.ticks_ms()
         return self._ticks.ticks_add(now_ms, offset_ms)
+
+    def _await_ack(self, awaiting, *, packet_id=None, callback=None,
+                   topic=None, now_ms=None):
+        # Arm a PendingResponse with the shared ack timeout.
+        self._pending_responses.append(
+            PendingResponse(
+                awaiting=awaiting,
+                deadline_ticks=self._deadline(self._ack_timeout_ms, now_ms=now_ms),
+                packet_id=packet_id,
+                callback=callback,
+                topic=topic,
+            ),
+        )
