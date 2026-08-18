@@ -21,15 +21,15 @@
       "github:ChuMicro/ChuMicro-Bundle/chumicro_websockets/server.py"
     ]
   ],
-  "version": "0.27.0",
+  "version": "0.27.1",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
-      "20260817"
+      "20260818"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
-      "20260817"
+      "20260818"
     ]
   ]
 }
