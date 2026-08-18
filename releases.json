@@ -1,6 +1,27 @@
 {
   "releases": [
     {
+      "bundle_tag": "20260818",
+      "channel": "stable",
+      "libraries_tag": "20260818.005506",
+      "packages": {
+        "compat": "0.3.4",
+        "config": "0.7.6",
+        "http_server": "0.21.1",
+        "kvstore": "0.3.5",
+        "mqtt": "0.30.1",
+        "msgpack": "0.2.6",
+        "ntp": "0.15.1",
+        "requests": "0.21.1",
+        "runner": "0.22.1",
+        "sockets": "0.21.2",
+        "timing": "0.8.3",
+        "websockets": "0.27.1",
+        "wifi": "0.11.1"
+      },
+      "published_at": "2026-08-18T00:56:19Z"
+    },
+    {
       "bundle_tag": "20260817",
       "channel": "stable",
       "libraries_tag": "20260817.235622",
