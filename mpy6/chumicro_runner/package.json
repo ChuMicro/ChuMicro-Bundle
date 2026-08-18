@@ -17,11 +17,11 @@
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_runner/generators.mpy"
     ]
   ],
-  "version": "0.22.1",
+  "version": "0.22.2",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
-      "20260818"
+      "20260818.1"
     ]
   ]
 }
