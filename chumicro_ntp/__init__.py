@@ -1,4 +1,4 @@
-"""Runner-shaped SNTP client for CircuitPython, MicroPython, and CPython."""
+
 
 import gc
 

@@ -1,4 +1,4 @@
-"""Non-blocking HTTP/1.1 client for CircuitPython, MicroPython, and CPython."""
+
 
 import gc
 
@@ -22,22 +22,22 @@ gc.collect()
 
 
 def __getattr__(name):
-    # Lazy import keeps the ~25 KB client module out of RAM for boards
-    # that use only the wire helpers.
+
+
     if name in ("HttpClient", "RequestHandle", "Response", "WhenOversized"):
-        # Collect before the import so the client module compiles into a
-        # swept heap rather than a fragmented one.
+
+
         gc.collect()
-        import chumicro_requests.client as _client  # noqa: PLC0415
+        import chumicro_requests.client as _client
 
         return getattr(_client, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 __all__ = [
-    # pyright: ignore[reportUnsupportedDunderAll]: HttpClient,
-    # RequestHandle, Response, and WhenOversized are PEP-562 lazy via
-    # __getattr__.
+
+
+
     "CaseInsensitiveDict",
     "HttpBusyError",
     "HttpClient",

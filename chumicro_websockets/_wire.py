@@ -25,7 +25,7 @@ def _append_packed_q(buffer: bytearray, value: int) -> None:
 
 
 def _sha1_digest(data: bytes) -> bytes:
-    # CircuitPython lacks hashlib.sha1 but has hashlib.new("sha1", ...).
+
     hasher_factory = getattr(hashlib, "sha1", None)
     if hasher_factory is not None:
         return hasher_factory(data).digest()
@@ -33,59 +33,59 @@ def _sha1_digest(data: bytes) -> bytes:
 
 
 class WebSocketError(Exception):
-    """Base class for every chumicro-websockets failure."""
+    pass
 
 
 class WebSocketProtocolError(WebSocketError):
-    """Peer sent bytes that RFC 6455 requires closing the connection on."""
+    pass
 
 
 class WebSocketHandshakeError(WebSocketError):
-    """The opening handshake failed (bad status, headers, or HTTP framing)."""
+    pass
 
 
 class WebSocketURLError(WebSocketError):
-    """URL doesn't parse as a supported ``ws://`` / ``wss://`` URL."""
+    pass
 
 
 class WebSocketTimeoutError(WebSocketError):
-    """A per-phase timeout elapsed (handshake, close, or pong-after-ping)."""
+    pass
 
 
 class WebSocketBackpressureError(WebSocketError):
-    """The TX queue overflowed before the runner could drain it."""
+    pass
 
 
 class WebSocketStateError(WebSocketError):
-    """Caller invoked an operation that requires a different session state."""
+    pass
 
 
-#: RFC 6455 §1.3 magic GUID concatenated with the nonce to derive the accept key.
+
 WS_MAGIC_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
-#: RFC 6455 §4.1: required version token for the opening handshake.
+
 WS_VERSION = "13"
 
 CRLF = b"\r\n"
 
 
-#: Default per-tick recv cap; small enough to keep tick latency LED-friendly.
+
 DEFAULT_RECV_BUDGET_PER_TICK = const(1024)
 
 DEFAULT_SEND_BUDGET_PER_TICK = const(1024)
 
-#: Default inbound message cap; 16 KB leaves headroom on a 256 KB-RAM board.
+
 DEFAULT_MAX_MESSAGE_BYTES = const(16384)
 
-#: Default cap on the opening-handshake header block.
+
 DEFAULT_MAX_HEADER_BYTES = const(8192)
 
 DEFAULT_MAX_TX_QUEUE_SIZE = const(8)
 
-#: Default next_message queue bound; full drops the oldest message, not the newest.
+
 DEFAULT_MAX_INBOUND_QUEUE_SIZE = const(16)
 
-#: Steady-state :class:`FrameParser` payload buffer; covers short frames without allocating.
+
 DEFAULT_PAYLOAD_BUFFER_SIZE = const(256)
 
 DEFAULT_HANDSHAKE_TIMEOUT_MS = const(10000)
@@ -94,10 +94,10 @@ DEFAULT_CLOSE_TIMEOUT_MS = const(5000)
 
 DEFAULT_PONG_TIMEOUT_MS = const(30000)
 
-#: RFC 6455 §5.5: control payloads MUST be <=125 bytes.
+
 MAX_CONTROL_PAYLOAD_BYTES = const(125)
 
-# Opcodes: RFC 6455 §5.2.
+
 OPCODE_CONTINUATION = const(0x0)
 OPCODE_TEXT = const(0x1)
 OPCODE_BINARY = const(0x2)
@@ -105,24 +105,24 @@ OPCODE_CLOSE = const(0x8)
 OPCODE_PING = const(0x9)
 OPCODE_PONG = const(0xA)
 
-#: Data (non-control) opcodes, RFC 6455 §5.6.
+
 DATA_OPCODES = frozenset({OPCODE_CONTINUATION, OPCODE_TEXT, OPCODE_BINARY})
 
-#: Control-frame opcodes, RFC 6455 §5.5 (FIN=1, payload <= 125, may interleave).
+
 CONTROL_OPCODES = frozenset({OPCODE_CLOSE, OPCODE_PING, OPCODE_PONG})
 
-# Close codes: RFC 6455 §7.4.1 / §7.4.2.
+
 CLOSE_NORMAL = const(1000)
 CLOSE_GOING_AWAY = const(1001)
 CLOSE_PROTOCOL_ERROR = const(1002)
-CLOSE_NO_STATUS_RCVD = const(1005)  # reserved; never sent on the wire
-CLOSE_ABNORMAL = const(1006)        # reserved; never sent on the wire
+CLOSE_NO_STATUS_RCVD = const(1005)
+CLOSE_ABNORMAL = const(1006)
 CLOSE_BAD_DATA = const(1007)
 CLOSE_TOO_BIG = const(1009)
 CLOSE_INTERNAL_ERROR = const(1011)
-CLOSE_TLS_HANDSHAKE = const(1015)   # reserved; never sent on the wire
+CLOSE_TLS_HANDSHAKE = const(1015)
 
-#: Close codes RFC 6455 §7.4.1 forbids on the wire; a peer sending one is a protocol error.
+
 RESERVED_CLOSE_CODES = frozenset({
     CLOSE_NO_STATUS_RCVD,
     CLOSE_ABNORMAL,
@@ -131,7 +131,7 @@ RESERVED_CLOSE_CODES = frozenset({
 
 
 class WebSocketState:
-    """Lifecycle states for a websocket session."""
+
 
     CONNECTING = "connecting"
     OPEN = "open"
@@ -140,11 +140,11 @@ class WebSocketState:
 
 
 class CaseInsensitiveDict:
-    """Header dict whose lookups fold to lowercase."""
+
 
     def __init__(self):
         self._entries = {}
-        # MicroPython/CircuitPython dicts don't preserve insertion order; _order drives items().
+
         self._order = []
 
     def __setitem__(self, name, value):
@@ -160,24 +160,24 @@ class CaseInsensitiveDict:
         return name.lower() in self._entries
 
     def get(self, name, default=None):
-        """Return the value for *name* or *default* if missing."""
+
         entry = self._entries.get(name.lower())
         if entry is None:
             return default
         return entry[1]
 
     def items(self):
-        """Yield ``(original_name, value)`` pairs in insertion order."""
+
         for lower in self._order:
             yield self._entries[lower]
 
 
 def parse_ws_url(url: str) -> tuple[str, str, int, str]:
-    """Split a ``ws://`` or ``wss://`` *url* into ``(scheme, host, port, path)``.
 
-    Raises:
-        WebSocketURLError: Bad scheme, missing host, or out-of-range port.
-    """
+
+
+
+
     if not isinstance(url, str):
         raise WebSocketURLError(
             f"url must be str, got {type(url).__name__}",
@@ -231,19 +231,19 @@ def parse_ws_url(url: str) -> tuple[str, str, int, str]:
 
 
 def make_websocket_key() -> str:
-    """Generate a fresh ``Sec-WebSocket-Key`` (16 random bytes, base64 ASCII) per RFC 6455 §4.1."""
+
     nonce = os.urandom(16)
     encoded = binascii.b2a_base64(nonce)
-    # b2a_base64 appends a trailing newline byte.
+
     return encoded.rstrip(b"\n").rstrip(b"\r").decode("ascii")
 
 
 def derive_accept_key(client_key: str) -> str:
-    """Compute ``Sec-WebSocket-Accept`` from the client's nonce.
 
-    Args:
-        client_key: Verbatim base64 nonce; do not decode it first.
-    """
+
+
+
+
     digest = _sha1_digest((client_key + WS_MAGIC_GUID).encode("ascii"))
     encoded = binascii.b2a_base64(digest)
     return encoded.rstrip(b"\n").rstrip(b"\r").decode("ascii")
@@ -265,21 +265,21 @@ def encode_client_handshake(
     *,
     extra_headers: object | None = None,
 ) -> bytes:
-    """Encode the client's opening-handshake HTTP/1.1 request.
 
-    Args:
-        host: Target host for the ``Host`` header.
-        port: Target port; appended to ``Host`` only when non-default (80/443).
-        path: Request path, including any query string.
-        key: ``Sec-WebSocket-Key`` nonce.
-        extra_headers: Caller headers merged before the mandatory upgrade headers.
-    """
+
+
+
+
+
+
+
+
     is_default_port = port in (80, 443)
     host_value = host if is_default_port else f"{host}:{port}"
 
     merged = CaseInsensitiveDict()
     _merge_extra_headers(merged, extra_headers)
-    # Mandatory upgrade headers applied last so callers can't override them.
+
     merged["Host"] = host_value
     merged["Upgrade"] = "websocket"
     merged["Connection"] = "Upgrade"
@@ -298,12 +298,12 @@ def encode_server_handshake_response(
     *,
     extra_headers: object | None = None,
 ) -> bytes:
-    """Encode the server's ``101 Switching Protocols`` response.
 
-    Args:
-        client_key: Verbatim ``Sec-WebSocket-Key`` from the request.
-        extra_headers: Caller headers merged before the mandatory upgrade headers.
-    """
+
+
+
+
+
     accept_token = derive_accept_key(client_key)
 
     merged = CaseInsensitiveDict()
@@ -326,14 +326,14 @@ def encode_server_rejection(
     body: bytes | None = None,
     content_type: str = "text/plain; charset=utf-8",
 ) -> bytes:
-    """Encode an HTTP/1.1 error response for a rejected upgrade.
 
-    Args:
-        status_code: HTTP status code.
-        reason_phrase: HTTP reason phrase.
-        body: Optional response body; sets ``Content-Length`` automatically.
-        content_type: ``Content-Type`` used when *body* is set.
-    """
+
+
+
+
+
+
+
     parts = [f"HTTP/1.1 {status_code} {reason_phrase}\r\n".encode("ascii")]
     parts.append(b"Connection: close\r\n")
     if body is not None:
@@ -346,7 +346,7 @@ def encode_server_rejection(
 
 
 class HandshakeParseState:
-    """Streaming-handshake parser states."""
+
 
     REQUEST_LINE = "request_line"
     STATUS_LINE = "status_line"
@@ -361,7 +361,7 @@ class _HandshakeLineParser:
     def __init__(self, *, max_header_bytes: int = DEFAULT_MAX_HEADER_BYTES):
         self._max_header_bytes = max_header_bytes
         self._buffer = bytearray()
-        # Read cursor into _buffer; slicing off consumed bytes would fragment the heap.
+
         self._read_offset = 0
         self.state = self._initial_state
         self.http_version = ""
@@ -371,15 +371,15 @@ class _HandshakeLineParser:
 
 
     def feed(self, chunk: bytes) -> None:
-        """Consume *chunk* bytes and advance state if possible.
 
-        Raises:
-            WebSocketHandshakeError: Overflow, malformed first line, or validation failure.
-        """
+
+
+
+
         if self.state in (HandshakeParseState.DONE, HandshakeParseState.ERROR):
             return
         self._buffer.extend(chunk)
-        # Cap on unconsumed bytes: len(_buffer) would over-count not-yet-compacted bytes.
+
         if self._live_len() > self._max_header_bytes:
             raise self._fail(
                 f"handshake exceeded max_header_bytes={self._max_header_bytes}",
@@ -410,9 +410,9 @@ class _HandshakeLineParser:
         return position - self._read_offset
 
     def _live_slice(self, start, length=None):
-        # A memoryview, not a bytearray slice: every caller immediately
-        # wraps the return in bytes(), so each line is copied once, and
-        # the short-lived view is dead before the buffer next resizes.
+
+
+
         absolute_start = self._read_offset + start
         view = memoryview(self._buffer)
         if length is None:
@@ -421,13 +421,13 @@ class _HandshakeLineParser:
 
     def _consume(self, count):
         self._read_offset += count
-        # Compact past halfway: slice-assign-empty is an in-place memmove, no allocation.
+
         if self._read_offset > 0 and self._read_offset * 2 >= len(self._buffer):
             self._buffer[:self._read_offset] = b""
             self._read_offset = 0
 
     def _parse_header_line(self, line: bytes) -> None:
-        # MicroPython/CircuitPython decode as UTF-8 regardless of codec; catch UnicodeError.
+
         try:
             decoded = line.decode("iso-8859-1")
         except UnicodeError as decode_error:
@@ -467,15 +467,15 @@ class _HandshakeLineParser:
         self.state = HandshakeParseState.ERROR
         return WebSocketHandshakeError(message)
 
-    def _parse_first_line(self, line: bytes) -> None:  # pragma: no cover - abstract
+    def _parse_first_line(self, line: bytes) -> None:
         raise NotImplementedError
 
-    def _finalize(self) -> None:  # pragma: no cover - abstract
+    def _finalize(self) -> None:
         raise NotImplementedError
 
 
 class HandshakeResponseParser(_HandshakeLineParser):
-    """Streaming parser for the server's HTTP/1.1 ``101`` response."""
+
 
     _initial_state = HandshakeParseState.STATUS_LINE
 
@@ -492,7 +492,7 @@ class HandshakeResponseParser(_HandshakeLineParser):
             raise self._fail(
                 f"non-ASCII bytes in status line: {decode_error}",
             ) from decode_error
-        # "HTTP/1.1 101 Switching Protocols": split on first two spaces.
+
         parts = decoded.split(" ", 2)
         if len(parts) < 2:
             raise self._fail(f"malformed status line: {decoded!r}")
@@ -523,7 +523,7 @@ class HandshakeResponseParser(_HandshakeLineParser):
 
 
 class HandshakeRequestParser(_HandshakeLineParser):
-    """Streaming parser for the client's HTTP/1.1 upgrade request."""
+
 
     _initial_state = HandshakeParseState.REQUEST_LINE
 
@@ -534,7 +534,7 @@ class HandshakeRequestParser(_HandshakeLineParser):
 
     @property
     def client_key(self):
-        """Verbatim ``Sec-WebSocket-Key`` once headers parse, else ``""``."""
+
         return self.headers.get("Sec-WebSocket-Key", "")
 
     def _parse_first_line(self, line: bytes) -> None:
@@ -572,7 +572,7 @@ class HandshakeRequestParser(_HandshakeLineParser):
             raise self._fail("client request missing Sec-WebSocket-Key")
         try:
             decoded_key = binascii.a2b_base64(key.encode("ascii"))
-        # binascii.Error subclasses ValueError on CPython; MicroPython raises ValueError.
+
         except ValueError as decode_error:
             raise self._fail(
                 f"Sec-WebSocket-Key is not valid base64: {decode_error}",
@@ -586,7 +586,7 @@ class HandshakeRequestParser(_HandshakeLineParser):
 
 
 class FrameParseState:
-    """Streaming binary-frame parser states."""
+
 
     READING_HEADER = "reading_header"
     READING_LEN16 = "reading_len16"
@@ -598,8 +598,8 @@ class FrameParseState:
     ERROR = "error"
 
 
-# Fixed byte width of each header field the parser accumulates before
-# dispatching it (RFC 6455 §5.2 frame layout).
+
+
 _HEADER_FIELD_SIZES = {
     FrameParseState.READING_HEADER: 2,
     FrameParseState.READING_LEN16: 2,
@@ -609,12 +609,12 @@ _HEADER_FIELD_SIZES = {
 
 
 class FrameParser:
-    """Streaming RFC 6455 §5 binary-frame parser, one frame at a time.
 
-    Args:
-        max_payload_bytes: Per-frame payload cap; bounds heap, not connection lifetime.
-        payload_buffer_size: Steady-state payload buffer size reused across frames.
-    """
+
+
+
+
+
 
     def __init__(
         self,
@@ -624,7 +624,7 @@ class FrameParser:
     ):
         self._max_payload_bytes = max_payload_bytes
         self.state = FrameParseState.READING_HEADER
-        # 8-byte scratch reused across header/length/mask fields; _header_len is the cursor.
+
         self._header_scratch = bytearray(8)
         self._header_view = memoryview(self._header_scratch)
         self._header_len = 0
@@ -634,25 +634,25 @@ class FrameParser:
         self.had_mask = False
         self.reported_length = 0
         self._mask_key = b""
-        # memoryview over the steady buffer so per-write indexing doesn't re-create it.
+
         self._payload_buffer = bytearray(payload_buffer_size)
         self._payload_buffer_view = memoryview(self._payload_buffer)
         self._payload_capacity = payload_buffer_size
         self._payload = self._payload_buffer
         self._payload_view = self._payload_buffer_view
         self._payload_write_offset = 0
-        # Tier-3 drain state: oversized flips true when declared length exceeds the cap.
+
         self.oversized = False
         self._drain_remaining = 0
         self.error = None
 
     @property
     def payload(self):
-        """Unmasked payload of the just-completed frame as ``bytes``."""
+
         return bytes(self._payload_view[:self._payload_write_offset])
 
     def reset(self) -> None:
-        """Return to ``READING_HEADER`` for the next frame."""
+
         self.state = FrameParseState.READING_HEADER
         self._header_len = 0
         self.fin = False
@@ -668,14 +668,14 @@ class FrameParser:
         self._drain_remaining = 0
 
     def feed(self, chunk: bytes, start: int = 0) -> int:
-        """Consume bytes from *chunk* starting at *start*; return the count used.
 
-        Raises:
-            WebSocketProtocolError: Reserved opcode, or control frame with payload > 125 or FIN=0.
-        """
+
+
+
+
         consumed = 0
         effective_length = len(chunk) - start
-        # Bind a memoryview once so per-state slices are zero-copy.
+
         chunk_view = chunk if isinstance(chunk, memoryview) else memoryview(chunk)
         while consumed < effective_length and self.state not in (
             FrameParseState.FRAME_READY,
@@ -691,7 +691,7 @@ class FrameParser:
                 take = need if need <= remaining else remaining
                 if self.had_mask:
                     mask_key = self._mask_key
-                    # Hand-indexed: range() would allocate an iterator on this masked hot path.
+
                     index = 0
                     while index < take:
                         payload[write_offset + index] = (
@@ -711,7 +711,7 @@ class FrameParser:
                 continue
 
             if state == FrameParseState.DRAINING_PAYLOAD:
-                # Tier 3: count the bytes off the wire without storing or unmasking them.
+
                 drain_remaining = self._drain_remaining
                 take = drain_remaining if drain_remaining <= remaining else remaining
                 consumed += take
@@ -731,7 +731,7 @@ class FrameParser:
             header_len += take
             self._header_len = header_len
             consumed += take
-            # Compare against the field's total size, not need: a split field would desync.
+
             if header_len < field_size:
                 continue
 
@@ -745,7 +745,7 @@ class FrameParser:
                 self.reported_length = struct.unpack("!Q", self._header_view)[0]
                 self._header_len = 0
                 self._after_length()
-            else:  # READING_MASK
+            else:
                 self._mask_key = bytes(self._header_view[:4])
                 self._header_len = 0
                 self._after_mask()
@@ -780,17 +780,17 @@ class FrameParser:
         if length_marker == 126:
             self.state = FrameParseState.READING_LEN16
             return
-        # length_marker == 127
+
         self.state = FrameParseState.READING_LEN64
 
     def _after_length(self) -> None:
-        # RFC 6455 §5.5: control frames must be <= 125 bytes regardless of the cap.
+
         if self.opcode in CONTROL_OPCODES and self.reported_length > MAX_CONTROL_PAYLOAD_BYTES:
             raise self._fail(
                 f"control frame opcode 0x{self.opcode:x} payload "
                 f"{self.reported_length} > {MAX_CONTROL_PAYLOAD_BYTES}",
             )
-        # Over-cap data frames enter tier-3 drain; a masked frame reads its mask first.
+
         if self.reported_length > self._max_payload_bytes:
             self.oversized = True
             self._drain_remaining = self.reported_length
@@ -806,7 +806,7 @@ class FrameParser:
 
     def _after_mask(self) -> None:
         if self.oversized:
-            # Tier 3: skip buffer setup; DRAINING_PAYLOAD counts the bytes off and discards.
+
             if self._drain_remaining == 0:
                 self.state = FrameParseState.FRAME_READY
                 return
@@ -815,11 +815,11 @@ class FrameParser:
         if self.reported_length == 0:
             self.state = FrameParseState.FRAME_READY
             return
-        # Frames that fit reuse the steady buffer; larger frames allocate once, freed at reset().
+
         if self.reported_length > self._payload_capacity:
             self._payload = bytearray(self.reported_length)
             self._payload_view = memoryview(self._payload)
-        # else: _payload already aliases the steady buffer.
+
         self._payload_write_offset = 0
         self.state = FrameParseState.READING_PAYLOAD
 
@@ -830,7 +830,7 @@ class FrameParser:
 
 
 def make_mask_key() -> bytes:
-    """Return 4 random bytes for client-side outbound frame masking (RFC 6455 §5.3)."""
+
     return os.urandom(4)
 
 
@@ -841,20 +841,20 @@ def encode_frame(
     fin: bool = True,
     mask: bytes | None = None,
 ) -> bytearray:
-    """Encode a single websocket frame for outbound transmission.
 
-    Args:
-        opcode: One of ``OPCODE_*``.
-        payload: Frame payload (``bytes``, ``bytearray``, or ``memoryview``); may be empty.
-        fin: FIN bit; clear only on non-final frames of a fragmented message.
-        mask: 4-byte key for client-side masking, or ``None`` for server-side.
 
-    Returns:
-        The encoded frame as a ``bytearray`` ready for ``socket.send``.
 
-    Raises:
-        WebSocketProtocolError: Control payload over 125 bytes, or *mask* is not 4 bytes.
-    """
+
+
+
+
+
+
+
+
+
+
+
     if opcode in CONTROL_OPCODES and len(payload) > MAX_CONTROL_PAYLOAD_BYTES:
         raise WebSocketProtocolError(
             f"control frame opcode 0x{opcode:x} payload {len(payload)} "
@@ -883,7 +883,7 @@ def encode_frame(
         parts.extend(mask)
         payload_offset = len(parts)
         parts.extend(payload)
-        # Hand-indexed: range() would allocate an iterator on every masked frame.
+
         index = 0
         while index < payload_length:
             parts[payload_offset + index] ^= mask[index & 3]
@@ -894,18 +894,18 @@ def encode_frame(
 
 
 def encode_close_payload(code: int | None, reason: str = "") -> bytes:
-    """Build the body of a CLOSE frame.
 
-    Args:
-        code: Status code (e.g. :data:`CLOSE_NORMAL`), or ``None`` for an empty payload.
-        reason: UTF-8 string explaining the close.
 
-    Returns:
-        Bytes ready for :func:`encode_frame` with ``opcode=OPCODE_CLOSE``.
 
-    Raises:
-        WebSocketProtocolError: *code* is reserved, or the reason exceeds the 125-byte cap.
-    """
+
+
+
+
+
+
+
+
+
     if code is None:
         if reason:
             raise WebSocketProtocolError(
@@ -929,17 +929,17 @@ def encode_close_payload(code: int | None, reason: str = "") -> bytes:
 
 
 def parse_close_payload(payload: bytes) -> tuple[int | None, str]:
-    """Decode a CLOSE-frame body into ``(code, reason)``.
 
-    Args:
-        payload: Raw body of an inbound CLOSE frame.
 
-    Returns:
-        ``(None, "")`` for an empty body, else ``(code, reason)``.
 
-    Raises:
-        WebSocketProtocolError: 1-byte body, reserved code, or non-UTF-8 reason.
-    """
+
+
+
+
+
+
+
+
     if not payload:
         return None, ""
     if len(payload) == 1:
@@ -961,17 +961,17 @@ def parse_close_payload(payload: bytes) -> tuple[int | None, str]:
 
 
 def validate_text_payload(payload: bytes) -> str:
-    """Decode and UTF-8-validate a text-frame payload.
 
-    Args:
-        payload: Raw text-frame payload bytes.
 
-    Returns:
-        Decoded ``str``.
 
-    Raises:
-        WebSocketProtocolError: Bytes are not valid UTF-8.
-    """
+
+
+
+
+
+
+
+
     try:
         return str(payload, "utf-8")
     except UnicodeError as decode_error:

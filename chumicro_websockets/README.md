@@ -24,7 +24,7 @@ mpremote mip install github:ChuMicro/ChuMicro-Bundle/chumicro_websockets
 pip install chumicro-websockets
 ```
 
-For bundle setup, pre-compiled `.mpy` bundles, the experimental channel, and details on PyPI naming, see the [chumicro INSTALL guide](https://github.com/ChuMicro/ChuMicro/blob/main/INSTALL.md).
+For bundle setup, pre-compiled `.mpy` bundles, the experimental channel, and details on PyPI naming, see the [ChuMicro install guide](https://chumicro.com/ChuMicro/guides/install/).
 
 ## Quick example
 
@@ -60,8 +60,9 @@ server = WebSocketServer(
 )
 
 while True:
-    if server.check(ticks_ms()):
-        server.handle(ticks_ms())
+    now = ticks_ms()          # one timestamp per pass, shared by check and handle
+    if server.check(now):
+        server.handle(now)
 ```
 
 ## What's included

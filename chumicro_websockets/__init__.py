@@ -1,7 +1,7 @@
-"""Non-blocking WebSocket client and server for CircuitPython, MicroPython, and CPython.
 
-The public entry points are :class:`WebSocketClient` and :class:`WebSocketServer`.
-"""
+
+
+
 
 import gc
 
@@ -33,32 +33,32 @@ from chumicro_websockets._wire import (
 
 gc.collect()
 
-from chumicro_websockets._session import InboundMessage, WhenOversized  # noqa: E402, I001 - preceded by gc.collect().
+from chumicro_websockets._session import InboundMessage, WhenOversized
 
 gc.collect()
 
 
 def __getattr__(name):
-    # Lazy PEP 562 import: the client/server half a board never references stays out of RAM.
+
     if name == "WebSocketClient":
-        from chumicro_websockets.client import WebSocketClient  # noqa: PLC0415
+        from chumicro_websockets.client import WebSocketClient
 
         return WebSocketClient
     if name == "Connection":
-        from chumicro_websockets.server import Connection  # noqa: PLC0415
+        from chumicro_websockets.server import Connection
 
         return Connection
     if name == "WebSocketServer":
-        from chumicro_websockets.server import WebSocketServer  # noqa: PLC0415
+        from chumicro_websockets.server import WebSocketServer
 
         return WebSocketServer
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 __all__ = [
-    # pyright: ignore[reportUnsupportedDunderAll]: Connection,
-    # WebSocketClient, and WebSocketServer are PEP-562 lazy via
-    # __getattr__.
+
+
+
     "CLOSE_BAD_DATA",
     "CLOSE_GOING_AWAY",
     "CLOSE_INTERNAL_ERROR",

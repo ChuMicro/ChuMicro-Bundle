@@ -24,7 +24,7 @@ mpremote mip install github:ChuMicro/ChuMicro-Bundle/chumicro_http_server
 pip install chumicro-http-server
 ```
 
-For bundle setup, pre-compiled `.mpy` bundles, the experimental channel, and details on PyPI naming, see the [chumicro INSTALL guide](https://github.com/ChuMicro/ChuMicro/blob/main/INSTALL.md).
+For bundle setup, pre-compiled `.mpy` bundles, the experimental channel, and details on PyPI naming, see the [ChuMicro install guide](https://chumicro.com/ChuMicro/guides/install/).
 
 ## Quick example
 
@@ -51,9 +51,25 @@ def widget(request):
     return build_response(200, json={"id": request.path_params["id"]})
 
 while True:
-    if server.check(ticks_ms()):
-        server.handle(ticks_ms())
+    now = ticks_ms()          # one timestamp per pass, shared by check and handle
+    if server.check(now):
+        server.handle(now)
 ```
+
+In a program with more going on, hand the loop to [`chumicro-runner`](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/runner):
+
+```python
+from chumicro_runner import Runner
+
+runner = Runner()
+runner.add(server)
+
+while True:
+    now = runner.tick()
+    runner.wait(now)
+```
+
+`wait()` sleeps on the listening socket until a request arrives, which turns the loop from a busy spin into an idle one.
 
 ## What's included
 

@@ -17,19 +17,19 @@
       "github:ChuMicro/ChuMicro-Bundle/chumicro_http_server/streaming.py"
     ]
   ],
-  "version": "0.21.2",
+  "version": "0.21.3",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_config",
-      "20260818.1"
+      "20260823.4"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_sockets",
-      "20260818.1"
+      "20260823.4"
     ],
     [
       "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
-      "20260818.1"
+      "20260823.4"
     ]
   ]
 }

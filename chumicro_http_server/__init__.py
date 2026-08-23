@@ -1,7 +1,7 @@
-"""Non-blocking HTTP/1.1 server for CircuitPython, MicroPython, and CPython.
 
-The entry point is :class:`HttpServer`.
-"""
+
+
+
 
 import gc
 
@@ -31,20 +31,20 @@ from chumicro_http_server._wire import (
 
 
 def __getattr__(name):
-    # Lazy PEP 562 import: a wire-only board never loads the server module.
+
     if name in ("HttpServer", "Request", "Response", "build_response", "encode_response"):
-        # Free the heap before the large import compiles.
+
         gc.collect()
-        import chumicro_http_server.server as _server  # noqa: PLC0415
+        import chumicro_http_server.server as _server
 
         return getattr(_server, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 __all__ = [
-    # pyright: ignore[reportUnsupportedDunderAll]: HttpServer, Request,
-    # Response, build_response, and encode_response are PEP-562 lazy via
-    # __getattr__.
+
+
+
     "DEFAULT_MAX_CONNECTIONS",
     "DEFAULT_MAX_HEADERS_BYTES",
     "DEFAULT_MAX_REQUEST_BODY_BYTES",

@@ -1,7 +1,7 @@
-"""Streamed response bodies for chumicro-http-server (opt-in submodule).
 
-The entry points are :class:`StreamingResponse` and :func:`build_streaming_response`.
-"""
+
+
+
 
 import errno
 
@@ -12,8 +12,8 @@ from chumicro_http_server._wire import (
     ServerError,
 )
 
-# server.py lazy-imports this module (never the reverse at load time), so
-# by the time this runs server.py is fully loaded and these resolve.
+
+
 from chumicro_http_server.server import (
     _ENCODED_500_ERROR,
     _REASONS,
@@ -30,16 +30,16 @@ __all__ = [
     "encode_streaming_headers",
 ]
 
-# Chunked-body terminator: zero-length chunk plus closing CRLF.
+
 _CHUNK_TERMINATOR = b"0\r\n\r\n"
 _CHUNK_TERMINATOR_VIEW = memoryview(_CHUNK_TERMINATOR)
 
-# Lowercase hex for the chunk-size line (RFC 7230 §4.1).
+
 _HEX_DIGITS = b"0123456789abcdef"
 
 
 class _StreamError(ServerError):
-    """Streamed-send failure that breaks framing mid-body."""
+    pass
 
 
 def _hex_len(value):
@@ -51,10 +51,10 @@ def _hex_len(value):
 
 
 def _write_chunk_header(buffer, end, size):
-    # Write ``<hex-size>\r\n`` backwards into the buffer ending at *end*, with
-    # no per-chunk alloc; returns the header length (chunk starts at end - it).
-    buffer[end - 1] = 0x0A  # \n
-    buffer[end - 2] = 0x0D  # \r
+
+
+    buffer[end - 1] = 0x0A
+    buffer[end - 2] = 0x0D
     position = end - 2
     value = size
     while True:
@@ -75,7 +75,7 @@ class _StreamState:
         self._view = memoryview(buffer)
         total = len(buffer)
         if self._chunked:
-            # Reserve a head for the chunk-size line and a 2-byte tail CRLF, so a framed chunk is contiguous.
+
             self._header_reserve = _hex_len(total) + 2
             self._fill_capacity = total - self._header_reserve - 2
             if self._fill_capacity < 1:
@@ -109,11 +109,11 @@ class _StreamState:
         self.out_pos += count
 
     def pull(self):
-        """Poll the source once and frame the result.
 
-        Returns:
-            ``True`` if it framed data or handled EOF, ``False`` if the source is dry this tick.
-        """
+
+
+
+
         count = self._source(self._fill_view)
         if count == SOURCE_EOF:
             self._on_eof()
@@ -133,8 +133,8 @@ class _StreamState:
             reserve = self._header_reserve
             header_len = _write_chunk_header(self._buffer, reserve, count)
             body_end = reserve + count
-            self._buffer[body_end] = 0x0D  # \r
-            self._buffer[body_end + 1] = 0x0A  # \n
+            self._buffer[body_end] = 0x0D
+            self._buffer[body_end + 1] = 0x0A
             self.out_view = self._view
             self.out_pos = reserve - header_len
             self.out_end = body_end + 2
@@ -164,7 +164,7 @@ class _StreamState:
 
 
 class StreamingResponse:
-    """A response whose body a byte source produces incrementally."""
+
 
     def __init__(
         self,
@@ -196,17 +196,17 @@ def build_streaming_response(
     content_length: int | None = None,
     headers: object | None = None,
 ) -> StreamingResponse:
-    """Build a :class:`StreamingResponse` served from a byte *source*.
 
-    Args:
-        status: HTTP status code (default ``200``).
-        source: Fill callable ``source(buffer) -> int``; bytes written, 0 if none ready, or SOURCE_EOF.
-        content_length: Total to frame as ``Content-Length``; ``None`` (default) frames chunked.
-        headers: Optional extra headers; do not set Content-Length / Transfer-Encoding / Connection.
 
-    Returns:
-        A :class:`StreamingResponse` for the handler to return.
-    """
+
+
+
+
+
+
+
+
+
     merged_headers = CaseInsensitiveDict()
     _merge_headers(merged_headers, headers)
     return StreamingResponse(
@@ -219,11 +219,11 @@ def build_streaming_response(
 
 
 def encode_streaming_headers(response: StreamingResponse) -> bytes:
-    """Serialize a :class:`StreamingResponse`'s header block to wire bytes.
 
-    Raises:
-        ServerProtocolError: The reason phrase or a header carries a CR, LF, or NUL.
-    """
+
+
+
+
     headers = CaseInsensitiveDict()
     if response.content_length is not None:
         headers["Content-Length"] = str(response.content_length)
@@ -234,10 +234,10 @@ def encode_streaming_headers(response: StreamingResponse) -> bytes:
 
 
 def stage_streaming_response(conn, response):
-    """Encode *response*'s headers onto *conn* and arm the source drain."""
+
     try:
         header_bytes = encode_streaming_headers(response)
-    except Exception:  # noqa: BLE001 - unencodable headers, pre-body: a 500, not a crash
+    except Exception:
         conn._response_bytes = _ENCODED_500_ERROR
         conn._response_view = memoryview(conn._response_bytes)
         conn._response_offset = 0
@@ -255,7 +255,7 @@ def stage_streaming_response(conn, response):
 
 
 def drive_stream_body(conn):
-    """Drain *conn*'s byte source to its socket, framed, up to ``send_budget`` bytes this tick."""
+
     stream = conn._stream
     budget = conn._send_budget
     consumed = 0
@@ -272,7 +272,7 @@ def drive_stream_body(conn):
                 if socket_error.errno == errno.EAGAIN:
                     return
                 raise
-            if sent <= 0:  # pragma: no cover - non-blocking-EAGAIN backpressure path
+            if sent <= 0:
                 return
             stream.advance_sent(sent)
             consumed += sent
@@ -283,12 +283,12 @@ def drive_stream_body(conn):
         try:
             progressed = stream.pull()
         except ServerError:
-            # Contract violation or length mismatch; let the fail-and-close handler take it.
+
             raise
-        except Exception as source_error:  # noqa: BLE001 - handler source raised mid-body
-            # Bytes already on the wire; route through the fail-and-close path.
+        except Exception as source_error:
+
             raise _StreamError(
                 f"streaming source raised mid-body: {source_error!r}",
             ) from source_error
         if not progressed:
-            return  # source dry this tick; retry later
+            return

@@ -1,4 +1,4 @@
-"""Non-blocking MQTT 3.1.1 client for CircuitPython, MicroPython, and CPython."""
+
 
 import gc
 
@@ -22,19 +22,19 @@ def __getattr__(name):
         "WhenOversized",
         "default_client_id",
     ):
-        # Lazy-import the largest module so boards that never build a client
-        # pay no RAM; collect first so it compiles into a swept heap.
+
+
         gc.collect()
-        import chumicro_mqtt.client as _client  # noqa: PLC0415
+        import chumicro_mqtt.client as _client
 
         return getattr(_client, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 __all__ = [
-    # pyright: ignore[reportUnsupportedDunderAll]: InboundPublish, MQTTClient,
-    # ProtocolState, WhenOversized, and default_client_id are PEP-562 lazy via
-    # __getattr__.
+
+
+
     "InboundPublish",
     "MQTTClient",
     "MQTTBackpressureError",

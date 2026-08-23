@@ -1,7 +1,7 @@
-"""Runner-shaped WebSocket server built on chumicro-sockets and chumicro-timing.
 
-The public entry points are :class:`WebSocketServer` and :class:`Connection`.
-"""
+
+
+
 
 import errno
 
@@ -37,23 +37,23 @@ from chumicro_websockets._wire import (
     encode_server_rejection,
 )
 
-# Caps Runner.wait while a connection is in flight, so an unpolled
-# connection socket keeps advancing.
+
+
 _CONNECTION_PROGRESS_INTERVAL_MS = const(20)
 
 
 class ServerHandshakePhase:
-    """Sub-states inside CONNECTING: read the request, then write the 101 response."""
+
 
     READING_REQUEST = "reading_request"
     SENDING_RESPONSE = "sending_response"
 
 
 class Connection(_BaseSession):
-    """Server-side per-connection state machine and framing pipeline."""
+
 
     _peer_label = "client"
-    _inbound_mask_required = True  # clients MUST mask outbound (RFC 6455 §5.1)
+    _inbound_mask_required = True
 
     def __init__(
         self,
@@ -101,18 +101,18 @@ class Connection(_BaseSession):
         self.request_path = ""
         self.request_headers = None
 
-    def check(self, now_ms: int) -> bool:  # noqa: ARG002 - runner contract
-        """Return ``True`` if there's work to do for this connection."""
+    def check(self, now_ms: int) -> bool:
+
         return self.state != WebSocketState.CLOSED
 
-    def _connecting_wants_read(self, now_ms) -> bool:  # noqa: ARG002 - runner contract
+    def _connecting_wants_read(self, now_ms) -> bool:
         return self._handshake_phase == ServerHandshakePhase.READING_REQUEST
 
-    def _connecting_wants_write(self, now_ms) -> bool:  # noqa: ARG002 - runner contract
+    def _connecting_wants_write(self, now_ms) -> bool:
         return self._handshake_phase == ServerHandshakePhase.SENDING_RESPONSE
 
     def handle(self, now_ms: int) -> None:
-        """One tick of progress for this connection."""
+
         if self.state == WebSocketState.CLOSED:
             return
 
@@ -126,12 +126,12 @@ class Connection(_BaseSession):
                 self._send_handshake_chunk(now_ms)
             return
 
-        # Drain inbound first: the peer may have sent a CLOSE we must acknowledge.
+
         self._drain_inbound(now_ms)
         self._drain_outbound()
 
     def _outbound_mask(self):
-        # Servers MUST NOT mask outbound frames (RFC 6455 §5.1).
+
         return None
 
     def _on_finalized(self) -> None:
@@ -185,17 +185,17 @@ class Connection(_BaseSession):
         self._handshake_phase = None
         self._handshake_deadline_ticks = None
         self.state = WebSocketState.OPEN
-        # Hand off to the user's callback; a raising callback closes us with CLOSE_INTERNAL_ERROR.
+
         try:
             self._on_connection_callback(self)
-        except Exception as callback_error:  # noqa: BLE001 - user code
+        except Exception as callback_error:
             self._fail_with_error(
                 WebSocketError(
                     f"on_connection callback raised: {callback_error!r}",
                 ),
             )
             return
-        # The client may have piggybacked frame bytes after the request; drain the carry.
+
         if self._post_handshake_carry:
             self._feed_frame_bytes(self._post_handshake_carry, now_ms)
             self._post_handshake_carry = b""
@@ -215,16 +215,16 @@ class Connection(_BaseSession):
         response = encode_server_rejection(status_code, reason_phrase, body=body)
         try:
             self._socket.send(response)
-        except Exception:  # noqa: BLE001 - best-effort
+        except Exception:
             pass
         self._drop_transport()
-        # No on_close here: the callback's contract is a WebSocket close code,
-        # and user code only wires it inside on_connection, which a rejected
-        # handshake never reaches.
+
+
+
 
 
 class WebSocketServer:
-    """Runner-shaped WebSocket server owning a TCP/TLS listening socket."""
+
 
     @classmethod
     def from_config(
@@ -240,20 +240,20 @@ class WebSocketServer:
         ticks: object | None = None,
         **constructor_kwargs: object,
     ) -> "WebSocketServer":
-        """Build a :class:`WebSocketServer` from runtime config.
 
-        Config keys carry the deployment-varying values; any other
-        constructor knob passes through verbatim as a keyword, and an
-        explicit keyword wins over its config-derived value.
 
-        Construction is side-effect-free: with neither *listener* nor
-        *listener_factory* given, a factory is built from the config's
-        host / port and the bind happens on the first ``handle()`` tick.
-        """
+
+
+
+
+
+
+
+
         if listener is None and listener_factory is None:
-            # Lazy import so a client-only deploy never pulls chumicro_sockets onto the board.
+
             try:
-                from chumicro_sockets.sockets_factory import (  # noqa: PLC0415 - lazy
+                from chumicro_sockets.sockets_factory import (
                     listener_factory as sockets_listener_factory,
                 )
             except ImportError as exception:
@@ -302,31 +302,31 @@ class WebSocketServer:
         max_inbound_queue_size: int = DEFAULT_MAX_INBOUND_QUEUE_SIZE,
         ticks: object | None = None,
     ) -> None:
-        """Create a server; each per-connection knob defaults to its ``DEFAULT_*`` constant.
 
-        Args:
-            listener: Already-open listening socket, typically from
-                :func:`chumicro_sockets.listener`; mutually exclusive with *listener_factory*.
-            on_connection: ``callable(connection)`` fired once per connection at handshake completion.
-            listener_factory: Zero-arg callable returning the listening socket; the bind
-                is deferred to the first ``handle()`` tick.
-            max_connections: Concurrent-connection cap; at the cap the server stops calling ``accept()``.
-            accept_path: URI path to require, or ``None`` to accept any; a mismatch gets a 404.
-            max_message_bytes: Per-connection cap on assembled inbound message size.
-            recv_budget_per_tick: Per-tick recv cap.
-            send_budget_per_tick: Per-tick send cap.
-            max_tx_queue_size: Per-connection outbound queue bound.
-            when_oversized: :class:`WhenOversized` policy for oversized inbound payloads.
-            pong_timeout_ms: Deadline in ms for a PONG after a PING.
-            handshake_timeout_ms: Opening-handshake timeout in ms.
-            close_timeout_ms: Close-handshake timeout in ms.
-            max_inbound_queue_size: Bound on each connection's ``next_message`` queue.
-            ticks: Tick source; defaults to the :mod:`chumicro_timing` ``ticks`` submodule.
 
-        Raises:
-            ValueError: Neither or both of *listener* / *listener_factory* were
-                given, or *on_connection* is ``None``.
-        """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         if (listener is None) == (listener_factory is None):
             raise ValueError(
                 "provide exactly one of listener= or listener_factory= "
@@ -350,39 +350,39 @@ class WebSocketServer:
         self._max_inbound_queue_size = max_inbound_queue_size
 
         if ticks is None:
-            from chumicro_timing import ticks  # noqa: PLC0415 - DI fallback
+            from chumicro_timing import ticks
         self._ticks = ticks
 
         self._connections: list[Connection] = []
         self.closed = False
-        #: Most recent non-EAGAIN ``listener.accept()`` failure, or ``None`` if healthy.
+
         self.last_error: BaseException | None = None
 
     @property
     def connections(self) -> tuple:
-        """Tuple of currently-active :class:`Connection` objects."""
+
         return tuple(self._connections)
 
     @property
     def connection_count(self) -> int:
-        """How many connections are currently active (any non-CLOSED state)."""
+
         return len(self._connections)
 
-    def io_interest(self, now_ms: int) -> int:  # noqa: ARG002 - runner contract
-        """Poll-interest bit for ``Runner.wait``: read while the server
-        is open with its listener bound and a connection slot free,
-        else none."""
+    def io_interest(self, now_ms: int) -> int:
+
+
+
         if self.closed or self.io_socket is None:
             return 0
         return _IO_READ if len(self._connections) < self._max_connections else 0
 
     def next_deadline(self, now_ms: int) -> int | None:
-        """Earliest tick at which ``handle()`` must run.
 
-        The nearest connection deadline, capped at a short progress interval
-        while any connection is live; connection sockets are not registered
-        with the poller, so the cap keeps their I/O advancing.
-        """
+
+
+
+
+
         if self.closed or not self._connections:
             return None
         ticks_diff = self._ticks.ticks_diff
@@ -394,19 +394,19 @@ class WebSocketServer:
         return nearest
 
     def close(self) -> None:
-        """Stop accepting new connections and close every active session."""
+
         if self.closed:
             return
         if self.io_socket is not None:
             try:
                 self.io_socket.close()
-            except Exception:  # noqa: BLE001 - best-effort
+            except Exception:
                 pass
             self.io_socket = None
         for connection in list(self._connections):
             if connection.state == WebSocketState.CONNECTING:
-                # No 101 has gone out yet, so a CLOSE frame would precede the
-                # handshake on the wire; just drop the socket.
+
+
                 connection._finalize_closed()
                 continue
             if connection.state != WebSocketState.CLOSED:
@@ -414,25 +414,25 @@ class WebSocketServer:
                     connection.close(CLOSE_NORMAL, "server shutting down")
                 except WebSocketStateError:
                     pass
-                # Force-finalize so on_close fires even when the close handshake can't complete.
+
                 connection._finalize_closed()
         self._connections.clear()
         self.closed = True
 
-    def check(self, now_ms: int) -> bool:  # noqa: ARG002 - runner contract
-        """Return ``True`` if there's work to do this tick."""
+    def check(self, now_ms: int) -> bool:
+
         return not self.closed
 
     def handle(self, now_ms: int) -> None:
-        """Lazy-open the listener, accept new connections, advance every active connection one tick."""
+
         if self.closed:
             return
         if self.io_socket is None:
             self.io_socket = self._listener_factory()
             _force_non_blocking(self.io_socket)
         self._accept_pending(now_ms)
-        # Reverse index walk: closed connections pop in place with no per-tick
-        # list copy and no membership re-scans.
+
+
         connections = self._connections
         for connection_index in range(len(connections) - 1, -1, -1):
             connection = connections[connection_index]
@@ -440,7 +440,7 @@ class WebSocketServer:
                 connections.pop(connection_index)
                 continue
             connection.handle(now_ms)
-            # A callback may call server.close(), clearing every connection; stop if so.
+
             if self.closed:
                 return
             if connection.state == WebSocketState.CLOSED:

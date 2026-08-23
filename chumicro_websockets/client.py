@@ -1,7 +1,7 @@
-"""Runner-shaped WebSocket client built on chumicro-sockets and chumicro-timing.
 
-The public entry point is :class:`WebSocketClient`.
-"""
+
+
+
 
 from chumicro_websockets._session import (
     _IO_READ,
@@ -38,7 +38,7 @@ __all__ = ["WebSocketClient"]
 
 
 class ConnectingPhase:
-    """Sub-states inside CONNECTING: send the upgrade request, then read the 101."""
+
 
     AWAITING_TRANSPORT = "awaiting_transport"
     SENDING_HANDSHAKE = "sending_handshake"
@@ -46,10 +46,10 @@ class ConnectingPhase:
 
 
 class WebSocketClient(_BaseSession):
-    """Non-blocking RFC 6455 WebSocket client."""
+
 
     _peer_label = "server"
-    _inbound_mask_required = False  # servers MUST NOT mask outbound (RFC 6455 §5.1)
+    _inbound_mask_required = False
 
     @classmethod
     def from_config(
@@ -62,15 +62,15 @@ class WebSocketClient(_BaseSession):
         ticks: object | None = None,
         **constructor_kwargs: object,
     ) -> "WebSocketClient":
-        """Build a :class:`WebSocketClient` from runtime config.
 
-        Config keys carry the deployment-varying values; any other
-        constructor knob passes through verbatim as a keyword, and an
-        explicit keyword wins over its config-derived value.
-        """
+
+
+
+
+
         if transport_factory is None:
             try:
-                from chumicro_sockets.sockets_factory import (  # noqa: PLC0415
+                from chumicro_sockets.sockets_factory import (
                     connector_factory,
                 )
             except ImportError as exception:
@@ -109,25 +109,25 @@ class WebSocketClient(_BaseSession):
         max_inbound_queue_size: int = DEFAULT_MAX_INBOUND_QUEUE_SIZE,
         ticks: object | None = None,
     ) -> None:
-        """Create a client; each keyword defaults to its ``DEFAULT_*`` constant.
 
-        Args:
-            transport_factory: Callable ``(host, port, use_tls) -> connector`` for the transport.
-            max_message_bytes: Cap on assembled inbound message size.
-            recv_budget_per_tick: Per-tick recv cap that keeps ticks LED-friendly.
-            send_budget_per_tick: Per-tick send cap.
-            max_tx_queue_size: Outbound queue bound; overflow raises :class:`WebSocketBackpressureError`.
-            when_oversized: :class:`WhenOversized` policy for payloads above ``max_message_bytes``.
-            ping_interval_ms: Auto-ping interval in ms, or ``None`` to disable.
-            pong_timeout_ms: Deadline in ms for a PONG after a PING.
-            handshake_timeout_ms: Opening-handshake timeout in ms.
-            close_timeout_ms: Close-handshake timeout in ms.
-            max_inbound_queue_size: Bound on the ``next_message`` queue.
-            ticks: Tick source; defaults to the :mod:`chumicro_timing` ``ticks`` submodule.
-        """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         if ticks is None:
-            from chumicro_timing import ticks  # noqa: PLC0415 - DI fallback
-        # socket is None until connect() fills it in.
+            from chumicro_timing import ticks
+
         self._init_session_state(
             socket=None,
             max_message_bytes=max_message_bytes,
@@ -150,7 +150,7 @@ class WebSocketClient(_BaseSession):
         self._connecting_phase = None
         self.url = ""
 
-        # Captured at connect(), consumed by _on_transport_ready once the socket is live.
+
         self._pending_handshake_host = None
         self._pending_handshake_port = None
         self._pending_handshake_path = None
@@ -169,16 +169,16 @@ class WebSocketClient(_BaseSession):
         timeout_ms: int | None = None,
         extra_headers: object | None = None,
     ) -> None:
-        """Initiate the opening handshake against *url*.
 
-        Args:
-            url: ``ws://`` or ``wss://`` URL to connect to.
-            timeout_ms: Handshake timeout override in ms, or ``None`` for the default.
-            extra_headers: Extra request headers (iterable, ``dict``, or :class:`CaseInsensitiveDict`).
 
-        Raises:
-            WebSocketStateError: :meth:`connect` was already called.
-        """
+
+
+
+
+
+
+
+
         if self._connect_called:
             raise WebSocketStateError(
                 f"connect() may only be called once per WebSocketClient; "
@@ -191,7 +191,7 @@ class WebSocketClient(_BaseSession):
         use_tls = scheme == "wss"
 
         self._connector = self._transport_factory(host, port, use_tls)
-        # Capture params now; encode the request once the connector hands back a live socket.
+
         self._pending_handshake_host = host
         self._pending_handshake_port = port
         self._pending_handshake_path = path
@@ -206,7 +206,7 @@ class WebSocketClient(_BaseSession):
         self.state = WebSocketState.CONNECTING
         self._connecting_phase = ConnectingPhase.AWAITING_TRANSPORT
 
-    def _on_transport_ready(self, now_ms: int) -> None:  # noqa: ARG002 - hook signature
+    def _on_transport_ready(self, now_ms: int) -> None:
         self._socket = self._connector.socket
         self._connector = None
         _force_non_blocking(self._socket)
@@ -232,7 +232,7 @@ class WebSocketClient(_BaseSession):
         self._connecting_phase = ConnectingPhase.SENDING_HANDSHAKE
 
     def check(self, now_ms: int) -> bool:
-        """Return ``True`` if there's work to do on this tick."""
+
         return self._connect_called and self.state != WebSocketState.CLOSED
 
     def _connecting_wants_read(self, now_ms) -> bool:
@@ -251,9 +251,9 @@ class WebSocketClient(_BaseSession):
 
     @property
     def io_socket(self):
-        """The connector's pollable while ``AWAITING_TRANSPORT``, else the live socket."""
-        # CircuitPython cannot resolve super() inside a property getter,
-        # so the base getter's body is inlined.
+
+
+
         if self._connecting_phase == ConnectingPhase.AWAITING_TRANSPORT:
             return self._connector.io_socket if self._connector is not None else None
         if self._socket is None:
@@ -263,7 +263,7 @@ class WebSocketClient(_BaseSession):
         return self._socket
 
     def next_deadline(self, now_ms: int) -> int | None:
-        """Earliest tick at which ``handle()`` must run on a quiet socket."""
+
         if (
             self._connecting_phase == ConnectingPhase.AWAITING_TRANSPORT
             and self.io_socket is None
@@ -272,11 +272,11 @@ class WebSocketClient(_BaseSession):
         return _BaseSession.next_deadline(self, now_ms)
 
     def handle(self, now_ms: int) -> None:
-        """One tick of progress: drain bounded inbound, then bounded outbound."""
+
         if self.state == WebSocketState.CLOSED or not self._connect_called:
             return
 
-        # Timeouts first: an expired handshake / close / pong overrides other work.
+
         if self._check_timeouts(now_ms):
             return
 
@@ -289,7 +289,7 @@ class WebSocketClient(_BaseSession):
                 self._receive_handshake_chunk(now_ms)
             return
 
-        # Drain inbound first: the peer may have sent a CLOSE we must acknowledge.
+
         self._drain_inbound(now_ms)
         self._drain_outbound()
 
@@ -310,14 +310,14 @@ class WebSocketClient(_BaseSession):
             )
 
     def _outbound_mask(self):
-        # Clients MUST mask outbound frames (RFC 6455 §5.1).
+
         return make_mask_key()
 
-    def _on_handshake_send_complete(self, now_ms: int) -> None:  # noqa: ARG002 - hook signature
+    def _on_handshake_send_complete(self, now_ms: int) -> None:
         self._connecting_phase = ConnectingPhase.RECEIVING_HANDSHAKE
 
     def close(self, code: int = CLOSE_NORMAL, reason: str = "") -> None:
-        """Initiate a graceful close, or abort an in-flight connect."""
+
         if self.state in (WebSocketState.CLOSING, WebSocketState.CLOSED):
             raise WebSocketStateError(
                 f"close() not allowed in state {self.state}",
@@ -336,10 +336,10 @@ class WebSocketClient(_BaseSession):
         self._handshake_deadline_ticks = None
         self._next_auto_ping_ticks = None
         if self._connector is not None:
-            # Cancel a still-held connector so its half-open socket doesn't leak the pool.
+
             try:
                 self._connector.cancel()
-            except Exception:  # noqa: BLE001 - best-effort connector teardown
+            except Exception:
                 pass
             self._connector = None
         self._connecting_phase = None
@@ -370,7 +370,7 @@ class WebSocketClient(_BaseSession):
             self.state = WebSocketState.OPEN
             self._arm_auto_ping(now_ms)
             self.on_open()
-            # The peer may have piggybacked frame bytes after the handshake; drain the carry.
+
             if self._post_handshake_carry:
                 self._feed_frame_bytes(self._post_handshake_carry, now_ms)
                 self._post_handshake_carry = b""
