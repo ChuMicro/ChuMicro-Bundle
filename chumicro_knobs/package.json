@@ -1,0 +1,33 @@
+{
+  "urls": [
+    [
+      "chumicro_knobs/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_knobs/__init__.py"
+    ],
+    [
+      "chumicro_knobs/_adapters/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_knobs/_adapters/__init__.py"
+    ],
+    [
+      "chumicro_knobs/_adapters/base.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_knobs/_adapters/base.py"
+    ],
+    [
+      "chumicro_knobs/_adapters/cp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_knobs/_adapters/cp.py"
+    ],
+    [
+      "chumicro_knobs/_adapters/mp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_knobs/_adapters/mp.py"
+    ],
+    [
+      "chumicro_knobs/analog.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_knobs/analog.py"
+    ],
+    [
+      "chumicro_knobs/encoder.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_knobs/encoder.py"
+    ]
+  ],
+  "version": "0.1.0"
+}
