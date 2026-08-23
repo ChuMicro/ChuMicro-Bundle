@@ -25,11 +25,11 @@
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_buttons/matrix.mpy"
     ]
   ],
-  "version": "0.1.0",
+  "version": "0.1.1",
   "deps": [
     [
       "github:ChuMicro/ChuMicro-Bundle/mpy6/chumicro_timing",
-      "20260823"
+      "20260823.2"
     ]
   ]
 }
