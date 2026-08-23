@@ -62,6 +62,7 @@ pip install chumicro-timing
 
 | Library | Version | Description |
 | --- | --- | --- |
+| [**chumicro-buttons**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/buttons) | 0.1.0 | Debounced buttons, switches, and key matrices for CircuitPython, MicroPython, and CPython: presses land even when your loop is busy. |
 | [**chumicro-compat**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/compat) | 0.3.5 | Cross-runtime compatibility polyfills for CircuitPython, MicroPython, and CPython: functools.partial and more. |
 | [**chumicro-config**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/config) | 0.7.7 | Standardized runtime-config helpers for ChuMicro libraries: section loader plus on-device runtime-config reader. |
 | [**chumicro-http_server**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/http_server) | 0.21.2 | Non-blocking HTTP/1.1 server for CircuitPython, MicroPython, and CPython. |

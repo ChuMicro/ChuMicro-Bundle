@@ -1,0 +1,39 @@
+{
+  "urls": [
+    [
+      "chumicro_buttons/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_buttons/__init__.py"
+    ],
+    [
+      "chumicro_buttons/_adapters/__init__.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_buttons/_adapters/__init__.py"
+    ],
+    [
+      "chumicro_buttons/_adapters/base.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_buttons/_adapters/base.py"
+    ],
+    [
+      "chumicro_buttons/_adapters/cp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_buttons/_adapters/cp.py"
+    ],
+    [
+      "chumicro_buttons/_adapters/mp.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_buttons/_adapters/mp.py"
+    ],
+    [
+      "chumicro_buttons/core.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_buttons/core.py"
+    ],
+    [
+      "chumicro_buttons/matrix.py",
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_buttons/matrix.py"
+    ]
+  ],
+  "version": "0.1.0",
+  "deps": [
+    [
+      "github:ChuMicro/ChuMicro-Bundle/chumicro_timing",
+      "20260823"
+    ]
+  ]
+}
