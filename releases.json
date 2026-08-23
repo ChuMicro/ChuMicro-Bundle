@@ -1,6 +1,16 @@
 {
   "releases": [
     {
+      "bundle_tag": "20260823.3",
+      "channel": "stable",
+      "libraries_tag": "20260823.183128",
+      "packages": {
+        "buttons": "0.1.2",
+        "knobs": "0.1.2"
+      },
+      "published_at": "2026-08-23T18:32:40Z"
+    },
+    {
       "bundle_tag": "20260823.2",
       "channel": "stable",
       "libraries_tag": "20260823.181520",
