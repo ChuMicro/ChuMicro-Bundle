@@ -62,11 +62,11 @@ pip install chumicro-timing
 
 | Library | Version | Description |
 | --- | --- | --- |
-| [**chumicro-buttons**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/buttons) | 0.1.1 | Debounced buttons, switches, and key matrices for CircuitPython, MicroPython, and CPython: presses land even when your loop is busy. |
+| [**chumicro-buttons**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/buttons) | 0.1.2 | Debounced buttons, switches, and key matrices for CircuitPython, MicroPython, and CPython: presses land even when your loop is busy. |
 | [**chumicro-compat**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/compat) | 0.3.5 | Cross-runtime compatibility polyfills for CircuitPython, MicroPython, and CPython: functools.partial and more. |
 | [**chumicro-config**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/config) | 0.7.7 | Standardized runtime-config helpers for ChuMicro libraries: section loader plus on-device runtime-config reader. |
 | [**chumicro-http_server**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/http_server) | 0.21.2 | Non-blocking HTTP/1.1 server for CircuitPython, MicroPython, and CPython. |
-| [**chumicro-knobs**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/knobs) | 0.1.1 | Rotary encoders and analog knobs, read as a position that holds still |
+| [**chumicro-knobs**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/knobs) | 0.1.2 | Rotary encoders and analog knobs, read as a position that holds still |
 | [**chumicro-kvstore**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/kvstore) | 0.3.6 | Tiny mutable key-value store for persisted runtime state (counters, timestamps, tokens) across CircuitPython, MicroPython, and CPython. |
 | [**chumicro-mqtt**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/mqtt) | 0.30.2 | Non-blocking MQTT 3.1.1 client (QoS 0+1) for CircuitPython, MicroPython, and CPython. |
 | [**chumicro-msgpack**](https://github.com/ChuMicro/ChuMicro/tree/main/libraries/msgpack) | 0.2.7 | Compact MessagePack serialization for CircuitPython, MicroPython, and CPython: delegates to the native C module when available. |
